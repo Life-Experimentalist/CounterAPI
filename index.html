@@ -1,205 +1,310 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Visit Counter</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProjectCounter Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body.dark-mode {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+    }
+    .container.dark-mode {
+      background-color: #23272b !important;
+    }
+    .card.dark-mode {
+      background-color: #2c2c2c;
+      color: #fff;
+    }
+    .navbar.dark-mode {
+      background-color: #343a40 !important;
+    }
+    .switch {
+      display: inline-block;
+      position: relative;
+    }
+    .switch__input {
+      clip: rect(1px, 1px, 1px, 1px);
+      clip-path: inset(50%);
+      height: 1px;
+      width: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+    }
+    .switch__label {
+      position: relative;
+      display: inline-block;
+      width: 120px;
+      height: 60px;
+      background-color: #2b2b2b;
+      border: 5px solid #5b5b5b;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.4s ease;
+    }
+    .switch__indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) translateX(-72%);
+      display: block;
+      width: 40px;
+      height: 40px;
+      background-color: #7b7b7b;
+      border-radius: 9999px;
+      box-shadow: 10px 0px 0 0 rgba(0, 0, 0, 0.2) inset;
+      transition: all 0.4s ease;
+    }
+    .switch__indicator::before,
+    .switch__indicator::after {
+      position: absolute;
+      content: "";
+      display: block;
+      background-color: #ffffff;
+      border-radius: 9999px;
+      transition: all 0.4s ease;
+    }
+    .switch__indicator::before {
+      top: 7px;
+      left: 7px;
+      width: 9px;
+      height: 9px;
+      opacity: 0.6;
+    }
+    .switch__indicator::after {
+      bottom: 8px;
+      right: 6px;
+      width: 14px;
+      height: 14px;
+      opacity: 0.8;
+    }
+    .switch__decoration {
+      position: absolute;
+      top: 65%;
+      left: 50%;
+      display: block;
+      width: 5px;
+      height: 5px;
+      background-color: #ffffff;
+      border-radius: 9999px;
+      animation: twinkle 0.8s infinite -0.6s;
+    }
+    .switch__decoration::before,
+    .switch__decoration::after {
+      position: absolute;
+      display: block;
+      content: "";
+      width: 5px;
+      height: 5px;
+      background-color: #ffffff;
+      border-radius: 9999px;
+    }
+    .switch__decoration::before {
+      top: -20px;
+      left: 10px;
+      animation: twinkle 0.6s infinite;
+    }
+    .switch__decoration::after {
+      top: -7px;
+      left: 30px;
+      animation: twinkle 0.6s infinite -0.2s;
+    }
+    @keyframes twinkle {
+      50% { opacity: 0.2; }
+    }
+    .switch__input:checked + .switch__label {
+      background-color: #8fb5f5;
+      border-color: #347cf8;
+    }
+    .switch__input:checked + .switch__label .switch__indicator {
+      background-color: #ecd21f;
+      box-shadow: none;
+      transform: translate(-50%, -50%) translateX(72%);
+    }
+    .switch__input:checked + .switch__label .switch__decoration {
+      top: 50%;
+      transform: translate(0%, -50%);
+      animation: cloud 8s linear infinite;
+      width: 20px;
+      height: 20px;
+    }
+    .switch__input:checked + .switch__label .switch__decoration::before {
+      width: 10px;
+      height: 10px;
+      top: auto;
+      bottom: 0;
+      left: -8px;
+      animation: none;
+    }
+    .switch__input:checked + .switch__label .switch__decoration::after {
+      width: 15px;
+      height: 15px;
+      top: auto;
+      bottom: 0;
+      left: 16px;
+      animation: none;
+    }
+    .switch__input:checked + .switch__label .switch__decoration,
+    .switch__input:checked + .switch__label .switch__decoration::before,
+    .switch__input:checked + .switch__label .switch__decoration::after {
+      border-radius: 9999px 9999px 0 0;
+    }
+    .switch__input:checked + .switch__label .switch__decoration::after {
+      border-bottom-right-radius: 9999px;
+    }
+    @keyframes cloud {
+      0% { transform: translate(0%, -50%); }
+      50% { transform: translate(-50%, -50%); }
+      100% { transform: translate(0%, -50%); }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-6">
-    <h1 class="text-3xl font-bold mb-6">Project Visit Counter</h1>
-    <div class="mb-6">
-        <input type="text" id="project-name-input" placeholder="Enter project name" class="border p-2 rounded mr-2">
-        <button id="add-project-button" class="bg-blue-500 text-white px-4 py-2 rounded">Add Project</button>
+
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark" id="navbar">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">ProjectCounter</a>
+      <div class="d-flex align-items-center">
+        <div class="switch me-3">
+          <input type="checkbox" class="switch__input" id="themeToggle" />
+          <label aria-hidden="true" class="switch__label" for="themeToggle">
+            <span aria-hidden="true" class="switch__indicator"></span>
+            <span aria-hidden="true" class="switch__decoration"></span>
+          </label>
+        </div>
+      </div>
     </div>
-    <div id="project-tiles-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  </nav>
 
-    <script>
-        const username = 'VKrishna04';
-        const repo = 'VKrishna04';
-        const projects = {};
+  <div class="container py-5">
+    <h1 class="mb-4">Project Visit Counter</h1>
+    <div class="mb-4">
+      <input type="text" id="project-name-input" class="form-control d-inline w-50" placeholder="Enter project name">
+      <button id="add-project-button" class="btn btn-primary ms-2">Add Project</button>
+    </div>
+    <div id="project-tiles-container" class="row g-4"></div>
+  </div>
 
-        document.getElementById('add-project-button').addEventListener('click', () => {
-            const projectName = document.getElementById('project-name-input').value.trim();
-            if (projectName) {
-                addProject(projectName);
-            } else {
-                alert('Please enter a project name.');
-            }
+  <script>
+    let apiBase = localStorage.getItem('apiBase');
+    if (!apiBase) {
+      apiBase = prompt("Enter your ProjectCounter backend URL (e.g. https://yourname.onrender.com):")?.trim();
+      if (!apiBase) alert("A valid backend URL is required.");
+      else localStorage.setItem('apiBase', apiBase);
+    }
+
+    function loadProjects() {
+      fetch(`${apiBase}/projects`)
+        .then(res => res.json())
+        .then(projects => {
+          const container = document.getElementById('project-tiles-container');
+          container.innerHTML = '';
+          projects.forEach(({ name, description, count }) => createTile(name, description, count));
+          applyDarkMode();
         });
+    }
 
-        function loadProjects() {
-            // Load projects from GitHub repository
-            fetch(`https://api.github.com/repos/${username}/${repo}/contents/project-files/counters`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (Array.isArray(data)) {
-                        data.forEach(file => {
-                            const projectName = file.name.replace('.txt', '');
-                            createProjectTile(projectName);
-                        });
-                    } else {
-                        console.warn('No project files found.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading projects:', error);
-                });
-        }
+    function createTile(name, desc, count) {
+      const container = document.getElementById('project-tiles-container');
+      const col = document.createElement('div');
+      col.className = 'col-md-4';
+      col.innerHTML = `
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">${name}</h5>
+            ${desc ? `<p class="card-text">${desc}</p>` : ''}
+            <p class="card-text"><strong>Count:</strong> ${count}</p>
+            <button class="btn btn-success me-2" onclick="pingProject('${name}')">Ping</button>
+            <button class="btn btn-warning me-2" onclick="editProjectPrompt('${name}')">Edit</button>
+            <button class="btn btn-danger" onclick="deleteProject('${name}')">Delete</button>
+          </div>
+        </div>`;
+      container.appendChild(col);
+    }
 
-        function addProject(projectName) {
-            if (projects[projectName]) {
-                alert('Project already exists.');
-                return;
-            }
-            projects[projectName] = { count: 0 };
-            createProjectTile(projectName);
-            createProjectFile(projectName);
-        }
+    function applyDarkMode() {
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      document.body.classList.toggle('dark-mode', isDark);
+      document.getElementById('navbar').classList.toggle('dark-mode', isDark);
+      // Toggle card dark mode
+      document.querySelectorAll('.card').forEach(card => {
+        card.classList.toggle('dark-mode', isDark);
+      });
+      // Toggle input dark mode
+      const input = document.getElementById('project-name-input');
+      if (input) {
+        input.classList.toggle('bg-dark', isDark);
+        input.classList.toggle('text-light', isDark);
+        input.classList.toggle('bg-light', !isDark);
+        input.classList.toggle('text-dark', !isDark);
+      }
+      // Toggle container dark mode
+      const container = document.querySelector('.container');
+      if (container) {
+        container.classList.toggle('dark-mode', isDark);
+        container.classList.toggle('bg-light', !isDark);
+      }
+    }
 
-        function createProjectFile(projectName) {
-            fetch(`https://api.github.com/repos/${username}/${repo}/contents/project-files/counters/${projectName}.txt`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `Create counter file for ${projectName}`,
-                    content: btoa('0')
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to create project file');
-                }
-                console.log(`Project file for ${projectName} created successfully.`);
-            })
-            .catch(error => {
-                console.error('Error creating project file:', error);
-            });
-        }
+    function pingProject(name) {
+      fetch(`${apiBase}/ping/${name}`, { method: 'POST' })
+        .then(() => loadProjects());
+    }
 
-        function removeProject(projectName) {
-            delete projects[projectName];
-            document.getElementById(`tile-${projectName}`).remove();
-        }
+    function deleteProject(name) {
+      fetch(`${apiBase}/projects/${name}`, { method: 'DELETE' })
+        .then(() => loadProjects());
+    }
 
-        function createProjectTile(projectName) {
-            const container = document.getElementById('project-tiles-container');
-            const tile = document.createElement('div');
-            tile.className = 'relative bg-white p-4 rounded shadow-md';
-            tile.id = `tile-${projectName}`;
-            tile.innerHTML = `
-                <button onclick="removeProject('${projectName}')" class="absolute top-2 right-2 text-red-500" title="Remove">&times;</button>
-                <h3 class="text-xl font-semibold mb-2">${projectName}</h3>
-                <p id="counter-${projectName}" class="mb-2">Counter: 0</p>
-                <button onclick="incrementCounter('${projectName}')" class="bg-green-500 text-white px-4 py-2 rounded mb-2" title="Increase by 1">Increment Counter</button>
-                <button onclick="updateCounterPrompt('${projectName}')" class="bg-yellow-500 text-white px-4 py-2 rounded mb-2" title="Edit Value">Update Count</button>
-                <button onclick="displayUrls('${projectName}')" class="bg-blue-500 text-white px-4 py-2 rounded mb-2" title="Get the URLs to integrate this tool into your project">Get URLs</button>
-                <div id="urls-${projectName}" class="mt-2"></div>
-            `;
-            container.appendChild(tile);
-            updateCounterDisplay(projectName);
-        }
+    function editProjectPrompt(name) {
+      fetch(`${apiBase}/projects`)
+        .then(res => res.json())
+        .then(projects => {
+          const current = projects.find(p => p.name === name);
+          const newName = prompt('New name:', current?.name || name);
+          const newDesc = prompt('New description:', current?.description || '');
+          if (newName || newDesc !== null) {
+            fetch(`${apiBase}/projects/${name}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ new_name: newName || name, description: newDesc })
+            }).then(() => loadProjects());
+          }
+        });
+    }
 
-        function incrementCounter(projectName) {
-            fetch(`https://api.github.com/repos/${username}/${repo}/dispatches`, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    event_type: 'increment-counter',
-                    client_payload: {
-                        project_name: projectName
-                    }
-                })
-            })
-            .then(response => {
-                if (response.ok) {
-                    updateCounterDisplay(projectName);
-                } else {
-                    console.error('Error:', response.statusText);
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        }
-
-        function updateCounterPrompt(projectName) {
-            const newCount = prompt('Enter the new count value:');
-            if (newCount !== null) {
-                updateCounter(projectName, newCount);
-            }
-        }
-
-        function updateCounter(projectName, newCount) {
-            fetch(`https://api.github.com/repos/${username}/${repo}/dispatches`, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    event_type: 'increment-counter',
-                    client_payload: {
-                        project_name: projectName,
-                        new_count: newCount
-                    }
-                })
-            })
-            .then(response => {
-                if (response.ok) {
-                    updateCounterDisplay(projectName);
-                } else {
-                    console.error('Error:', response.statusText);
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        }
-
-        function updateCounterDisplay(projectName) {
-            fetch(`https://raw.githubusercontent.com/${username}/${repo}/main/project-files/counters/${projectName}.txt`)
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById(`counter-${projectName}`).innerText = `Counter: ${data}`;
-                });
-        }
-
-        function displayUrls(projectName) {
-            const viewUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/project-files/counters/${projectName}.txt`;
-            const incrementUrl = `https://api.github.com/repos/${username}/${repo}/dispatches`;
-
-            document.getElementById(`urls-${projectName}`).innerHTML = `
-                <p>View URL: <a href="${viewUrl}" target="_blank" class="text-blue-500">${viewUrl}</a></p>
-                <p>Increment URL: ${incrementUrl}</p>
-                <button onclick="copyToClipboard('${viewUrl}')" class="bg-gray-500 text-white px-4 py-2 rounded mb-2">Copy View URL</button>
-                <button onclick="copyToClipboard('${incrementUrl}?project_name=${projectName}')" class="bg-gray-500 text-white px-4 py-2 rounded">Copy Increment URL</button>
-            `;
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('URL copied to clipboard');
-            }).catch(err => {
-                console.error('Error copying to clipboard', err);
-            });
-        }
-
-        // Load projects on page load
+    document.getElementById('add-project-button').addEventListener('click', () => {
+      const name = document.getElementById('project-name-input').value.trim();
+      if (!name) return alert('Enter a project name.');
+      fetch(`${apiBase}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      }).then(() => {
+        document.getElementById('project-name-input').value = '';
         loadProjects();
-    </script>
+      });
+    });
+
+    const themeToggle = document.getElementById('themeToggle');
+    if (localStorage.getItem('darkMode') === 'true') {
+      themeToggle.checked = true;
+    }
+    applyDarkMode();
+    themeToggle.addEventListener('change', (e) => {
+      const isDark = e.target.checked;
+      localStorage.setItem('darkMode', isDark);
+      applyDarkMode();
+    });
+
+    loadProjects();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

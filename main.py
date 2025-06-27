@@ -1,13 +1,22 @@
 import sqlite3
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-
-# from models import Project
 from pydantic import BaseModel
-
 from database import get_db, init_db
+import os
+
+# Auto-detect GitHub wiki URL from Render's env
+REPO_SLUG = os.getenv("RENDER_GIT_REPO_SLUG", "Life-Experimentalist/ProjectCounter")
+WIKI_URL = os.getenv("REPO_WIKI", f"https://github.com/{REPO_SLUG}/wiki")
+
+# Other optional env info
+RENDER_GIT_COMMIT = os.getenv("RENDER_GIT_COMMIT", "unknown")
+RENDER_SERVICE_ID = os.getenv("RENDER_SERVICE_ID", "unknown")
+RENDER_SERVICE_NAME = os.getenv("RENDER_SERVICE_NAME", "unknown")
+RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL", "unknown")
+RENDER_GIT_BRANCH = os.getenv("RENDER_GIT_BRANCH", "main")
 
 app = FastAPI()
 init_db()
@@ -29,7 +38,10 @@ class ProjectBase(BaseModel):
 class ProjectUpdate(BaseModel):
     new_name: Optional[str] = None
     description: Optional[str] = None
+    count: Optional[int] = None
 
+class ProjectPing(BaseModel):
+    name: str
 
 @app.get("/projects")
 def get_projects():
@@ -49,40 +61,67 @@ def create_project(proj: ProjectBase):
         )
         db.commit()
     except sqlite3.IntegrityError:
-        raise HTTPException(400, "Project already exists")
+        raise HTTPException(400, f"Project already exists. See: {WIKI_URL}")
     return {"message": f"Project '{proj.name}' added"}
 
 
-@app.put("/projects/{name}")
-def update_project(name: str, upd: ProjectUpdate):
+@app.put("/projects")
+def update_project(body: ProjectUpdate, request: Request):
+    name = request.query_params.get("name")
+    if not name:
+        raise HTTPException(400, f"Project name is required in query. See: {WIKI_URL}")
+
     db = get_db()
     cursor = db.cursor()
-    if upd.new_name:
+    cursor.execute("SELECT 1 FROM projects WHERE name = ?", (name,))
+    if not cursor.fetchone():
+        raise HTTPException(404, f"Project not found. See: {WIKI_URL}")
+
+    if body.new_name:
         cursor.execute(
-            "UPDATE projects SET name = ? WHERE name = ?", (upd.new_name, name)
+            "UPDATE projects SET name = ? WHERE name = ?", (body.new_name, name)
         )
-    if upd.description is not None:
+    if body.description is not None:
         cursor.execute(
             "UPDATE projects SET description = ? WHERE name = ?",
-            (upd.description, upd.new_name or name),
+            (body.description, body.new_name or name),
+        )
+    if body.count is not None:
+        cursor.execute(
+            "UPDATE projects SET count = ? WHERE name = ?",
+            (body.count, body.new_name or name),
         )
     db.commit()
     return {"message": "Updated"}
 
+@app.delete("/projects")
+def delete_project(request: Request):
+    name = request.query_params.get("name")
+    if not name:
+        raise HTTPException(400, f"Project name is required in query. See: {WIKI_URL}")
 
-@app.delete("/projects/{name}")
-def delete_project(name: str):
     db = get_db()
     db.execute("DELETE FROM projects WHERE name = ?", (name,))
     db.commit()
     return {"message": f"Deleted {name}"}
 
-
-@app.post("/ping/{name}")
-def ping_project(name: str):
+@app.post("/ping")
+def ping_project(proj: ProjectPing):
+    name = proj.name
     db = get_db()
     cursor = db.cursor()
     cursor.execute("INSERT OR IGNORE INTO projects (name) VALUES (?)", (name,))
     cursor.execute("UPDATE projects SET count = count + 1 WHERE name = ?", (name,))
     db.commit()
     return {"message": f"Ping received for {name}"}
+
+@app.get("/meta")
+def get_meta():
+    return {
+        "repo": REPO_SLUG,
+        "wiki": WIKI_URL,
+        "commit": RENDER_GIT_COMMIT,
+        "branch": RENDER_GIT_BRANCH,
+        "service": RENDER_SERVICE_NAME,
+        "external_url": RENDER_EXTERNAL_URL,
+    }

@@ -112,6 +112,7 @@ Feel free to fork, improve, or adapt for your own portfolio!
 
 ## 📂 Project Structure
 
+```
 ProjectCounter/
 ├── main.py              # FastAPI backend
 ├── database.py          # DB init logic
@@ -124,3 +125,7 @@ ProjectCounter/
 ├── README.md            # Setup instructions
 ├── architecture.md      # System architecture (Mermaid + text)
 └── todo.md              # Roadmap + future features
+```
+
+🛠️ **Note for Forkers and Contributors**
+When deploying to Render, you'll be asked to provide a unique service name. Make sure to enter something custom like `yourname-projectcounter` to avoid name collisions.
