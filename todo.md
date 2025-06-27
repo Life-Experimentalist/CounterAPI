@@ -1,4 +1,4 @@
-# 📋 TODO - ProjectCounter
+# 📋 TODO - CounterAPI
 
 ## ✅ MVP Done
 - [x] GET /projects

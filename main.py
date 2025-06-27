@@ -1,17 +1,19 @@
+import os
 import sqlite3
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from database import get_db, init_db
-import os
 
-# Auto-detect GitHub wiki URL from Render's env
-REPO_SLUG = os.getenv("RENDER_GIT_REPO_SLUG", "Life-Experimentalist/ProjectCounter")
+from database import get_db, init_db
+
+# GitHub Wiki fallback
+REPO_SLUG = os.getenv("RENDER_GIT_REPO_SLUG", "Life-Experimentalist/CounterAPI")
 WIKI_URL = os.getenv("REPO_WIKI", f"https://github.com/{REPO_SLUG}/wiki")
 
-# Other optional env info
+# Render deployment metadata
 RENDER_GIT_COMMIT = os.getenv("RENDER_GIT_COMMIT", "unknown")
 RENDER_SERVICE_ID = os.getenv("RENDER_SERVICE_ID", "unknown")
 RENDER_SERVICE_NAME = os.getenv("RENDER_SERVICE_NAME", "unknown")
@@ -21,6 +23,7 @@ RENDER_GIT_BRANCH = os.getenv("RENDER_GIT_BRANCH", "main")
 app = FastAPI()
 init_db()
 
+# Enable CORS for all origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,7 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+# Models
 class ProjectBase(BaseModel):
     name: str
     description: str = ""
@@ -40,8 +43,16 @@ class ProjectUpdate(BaseModel):
     description: Optional[str] = None
     count: Optional[int] = None
 
+
 class ProjectPing(BaseModel):
     name: str
+
+
+# Serve dashboard
+@app.get("/")
+def root():
+    return FileResponse("dashboard.html")
+
 
 @app.get("/projects")
 def get_projects():
@@ -91,6 +102,7 @@ def update_project(body: ProjectUpdate, request: Request):
             "UPDATE projects SET count = ? WHERE name = ?",
             (body.count, body.new_name or name),
         )
+
     db.commit()
     return {"message": "Updated"}
 

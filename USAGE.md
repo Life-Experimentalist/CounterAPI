@@ -1,4 +1,4 @@
-Here's a list of `curl` commands you can use to interact with your ProjectCounter backend (hosted on Render, e.g. `https://yourname.onrender.com`). Replace `https://yourname.onrender.com` with your actual API base if different.
+Here's a list of `curl` commands you can use to interact with your CounterAPI backend (hosted on Render, e.g. `https://yourname.onrender.com`). Replace `https://yourname.onrender.com` with your actual API base if different.
 
 ---
 

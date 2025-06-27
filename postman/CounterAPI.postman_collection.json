@@ -1,0 +1,132 @@
+{
+	"info": {
+		"name": "CounterAPI",
+		"_postman_id": "d61450e2-73c3-4d29-a660-3b80a7d558c9",
+		"description": "Postman collection for testing the CounterAPI endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Projects",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/projects",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects"
+					]
+				}
+			}
+		},
+		{
+			"name": "Add New Project",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"test-project\",\n  \"description\": \"Test project description\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/projects",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects"
+					]
+				}
+			}
+		},
+		{
+			"name": "Update Project",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"test-project\",\n  \"new_name\": \"updated-project\",\n  \"description\": \"Updated description\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/projects",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects"
+					]
+				}
+			}
+		},
+		{
+			"name": "Delete Project",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"updated-project\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/projects",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects"
+					]
+				}
+			}
+		},
+		{
+			"name": "Ping Project",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"updated-project\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/ping",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"ping"
+					]
+				}
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://projectcounter.onrender.com"
+		}
+	]
+}

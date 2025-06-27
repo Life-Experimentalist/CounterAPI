@@ -1,131 +1,208 @@
-# 📊 ProjectCounter
+# 📊 CounterAPI
 
-**ProjectCounter** is a self-hosted API service to track how many times your projects are used.
-Built with **FastAPI** and **SQLite**, and deployable for free on **Render**, it's perfect for hobby projects or developer dashboards.
+**CounterAPI** is a fully self-hosted API service to track how many times your projects are used.
+Powered by **FastAPI** and **SQLite**, it's ideal for hobby projects, dev dashboards, or lightweight analytics.
 
 ---
 
 ## 🌟 Features
 
-- ✅ Track individual project usage with simple pings
-- ✅ View all projects and their counters
-- ✅ CRUD support: add, edit, delete projects
-- ✅ Persistent storage with SQLite (file-based)
-- ✅ No external DBs or paid hosting required
-- ✅ Deploy once and forget — works even after cold starts
+* 🔁 Track project usage with simple HTTP pings
+* 🧓 View all counters in a clean JSON format
+* 🛠️ Full CRUD: Add, edit, rename, or delete projects
+* 📂 Persistent storage using SQLite (file-based)
+* 🚀 One-click deploy to Render (completely free)
+* 🧪 Comes with Postman Collection for quick testing
+* 🛡️ Automatically configures GitHub Wiki fallback for docs
 
 ---
 
-## 🚀 Get Started
+## 🧐 Architecture Overview
 
-### 1. 🧬 Fork or Clone the Repo
+* **Frontend (optional)**: Single-page UI served from Render (index.html)
+* **Backend**: FastAPI app handling all API routes
+* **Database**: Local SQLite (`counters.db`)
+* **Hosting**: [Render.com](https://render.com) (Free tier)
+* **Deployment**: Done via `render.yaml` auto-detected during setup
+
+---
+
+## 🚀 Getting Started
+
+### 1. 🔁 Fork This Repo
+
+Click the [Fork button](https://github.com/Life-Experimentalist/CounterAPI/fork) and clone it locally:
 
 ```bash
-git clone https://github.com/Life-Experimentalist/ProjectCounter.git
-cd ProjectCounter
+git clone https://github.com/your-username/CounterAPI.git
+cd CounterAPI
 ```
 
-### 2. 📦 Install Dependencies
+---
+
+### 2. 🧪 Run Locally
+
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. 🧪 Run Locally (for development)
+Start the dev server:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-### 4. 🌐 Deploy on Render (Free Tier)
+Now open: [http://localhost:8000/projects](http://localhost:8000/projects)
 
-* Go to [https://render.com](https://render.com)
-* Click **New Web Service**
-* Connect your GitHub → Select `ProjectCounter` repo
-* It will auto-detect `render.yaml` and deploy
+---
 
-Done! You now have a public API like:
+### 3. 🌐 Deploy on Render (One Click)
+
+Just click this button:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Life-Experimentalist/CounterAPI)
+
+Render will:
+
+* Detect `render.yaml`
+* Ask for a **custom web service name** (e.g. `yourname-counterapi`)
+* Deploy it with persistent SQLite database
+
+Once deployed, your base URL will be:
 
 ```
-GET    /projects
-POST   /projects
-PUT    /projects/{name}
-DELETE /projects/{name}
-POST   /ping/{project}
+https://<your-custom-name>.onrender.com
 ```
 
 ---
 
-## 🔗 Example API Usage
+## 📡 API Reference
 
-### ➕ Add a new project
+### ➕ Add Project
 
 ```http
 POST /projects
 {
   "name": "my-cool-app",
-  "description": "An example project"
+  "description": "My test project"
 }
 ```
 
-### 📈 Ping (increase count)
+### ✏️ Update Project
 
 ```http
-POST /ping/my-cool-app
+PUT /projects
+{
+  "name": "my-cool-app",
+  "new_name": "my-updated-app",
+  "description": "Updated desc"
+}
 ```
 
-### 📊 Get all projects
+### ❌ Delete Project
+
+```http
+DELETE /projects
+{
+  "name": "my-cool-app"
+}
+```
+
+### 📈 Ping (Increment Count)
+
+```http
+POST /ping
+{
+  "name": "my-cool-app"
+}
+```
+
+### 📊 List All Projects
 
 ```http
 GET /projects
 ```
 
----
-
-## 🧾 Todo / Roadmap
-
-See [`todo.md`](./todo.md)
-
----
-
-## 🧩 Tech Stack
-
-* [FastAPI](https://fastapi.tiangolo.com/) - backend framework
-* [SQLite](https://www.sqlite.org/index.html) - lightweight embedded database
-* [Render](https://render.com/) - free cloud hosting
-* [GitHub Pages](https://pages.github.com/) - static site hosting
-
----
-
-## 🛡️ License
-
-Apache 2.0 — Free for personal or commercial use.
-
----
-
-## 🙋 Contributing
-
-This project is designed for hobby use and easy duplication.
-Feel free to fork, improve, or adapt for your own portfolio!
+All endpoints return a JSON response.
+If a project is not found, a helpful error message with a link to the Wiki is returned automatically.
 
 ---
 
 ## 📂 Project Structure
 
 ```
-ProjectCounter/
-├── main.py              # FastAPI backend
-├── database.py          # DB init logic
-├── models.py            # SQLite table schema
-├── requirements.txt     # Dependencies
-├── render.yaml          # Render deployment config
-├── .gitignore           # Ignore counters.db
-├── counters.db          # Auto-generated SQLite file
-├── index.html           # Frontend UI (can be GitHub Pages)
-├── README.md            # Setup instructions
-├── architecture.md      # System architecture (Mermaid + text)
-└── todo.md              # Roadmap + future features
+CounterAPI/
+├── main.py              # FastAPI logic
+├── database.py          # SQLite setup
+├── requirements.txt     # Python dependencies
+├── render.yaml          # Render deployment descriptor
+├── index.html           # UI frontend (served by backend)
+├── architecture.md      # Mermaid diagrams + explanations
+├── todo.md              # Planned roadmap
+└── counters.db          # SQLite file (auto-created)
 ```
 
-🛠️ **Note for Forkers and Contributors**
-When deploying to Render, you'll be asked to provide a unique service name. Make sure to enter something custom like `yourname-projectcounter` to avoid name collisions.
+---
+
+## 📄 .env Variables for Render
+
+No `.env` is required unless you want to override defaults.
+
+Optional environment variables:
+
+| Name                   | Description                                    |
+| ---------------------- | ---------------------------------------------- |
+| `RENDER_GIT_REPO_SLUG` | Auto-detected by Render (used for error links) |
+| `RENDER_EXTERNAL_URL`  | Auto-detected public API base URL              |
+
+---
+
+## 🧪 Postman
+
+We provide a ready-made Postman collection to test all endpoints.
+
+### 📥 How to Use
+
+1. [Download `CounterAPI.postman_collection.json`](./postman/CounterAPI.postman_collection.json)
+2. Change the `base_url` at the bottom of the file from:
+3. Open [Postman](https://www.postman.com/)
+4. Click **Import → Upload Files** → Select the JSON file
+5. After import, **go to the "Variables" tab** inside the collection
+
+```
+https://projectcounter.onrender.com
+```
+
+to **your own deployed URL**, such as:
+
+```
+https://your-custom-name.onrender.com
+```
+
+Now you're ready to test all API routes directly! ✅
+
+---
+
+## 🔧 Tech Stack
+
+* 🐍 Python 3.x
+* ⚡ FastAPI
+* 📓 SQLite
+* ☁️ Render.com
+
+---
+
+## 📄 License
+
+Apache 2.0 – Free for personal, educational, and commercial use.
+
+---
+
+## 🙋‍♀️ Contributing
+
+This project is forkable and beginner-friendly.
+Feel free to tweak, star, or fork it to build your own tracker!
+
+---
