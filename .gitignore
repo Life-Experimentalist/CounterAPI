@@ -93,9 +93,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
 .env.local
-.env
 .env.*
 env/
 venv/
@@ -131,9 +129,8 @@ cython_debug/
 .vscode/
 
 # Environmental Variables
-.env
 .env.local
-.env.*
+.env.old
 node_modules/
 
 # Text

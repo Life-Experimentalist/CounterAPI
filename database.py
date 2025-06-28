@@ -1,6 +1,7 @@
 import sqlite3
+import os
 
-DB_PATH = "counters.db"
+DB_PATH = os.getenv("DB_PATH", "/data/counters.db")
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:

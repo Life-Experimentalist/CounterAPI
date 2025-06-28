@@ -1,4 +1,4 @@
-# 🧱 Architecture - ProjectCounter
+# 🧱 Architecture - CounterAPI
 
 ```mermaid
 flowchart TD

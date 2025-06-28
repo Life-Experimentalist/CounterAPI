@@ -14,5 +14,13 @@ services:
     envVars:
       - key: PORT
         value: 10000
-      - key: DATABASE_URL
-        value: "sqlite:///./counters.db"
+      - key: DB_PATH
+        value: /data/counters.db
+      - key: CORS_ALLOW_ORIGINS
+        value: "*"
+
+    disk:
+      name: data-disk
+      mountPath: /data
+      sizeGB: 1
+
