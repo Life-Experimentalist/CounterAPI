@@ -5,306 +5,841 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CounterAPI Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body.dark-mode {
-      background-color: #1e1e1e;
-      color: #e0e0e0;
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      --danger-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+      --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      --card-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
+      --border-radius: 16px;
+      --glass-bg: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.18);
     }
-    .container.dark-mode {
-      background-color: #23272b !important;
+
+    * {
+      font-family: 'Inter', sans-serif;
     }
-    .card.dark-mode {
-      background-color: #2c2c2c;
-      color: #fff;
-    }
-    .navbar.dark-mode {
-      background-color: #343a40 !important;
-    }
-    .switch {
-      display: inline-block;
+
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
       position: relative;
+      overflow-x: hidden;
     }
-    .switch__input {
-      clip: rect(1px, 1px, 1px, 1px);
-      clip-path: inset(50%);
-      height: 1px;
-      width: 1px;
-      margin: -1px;
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .navbar {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.5rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s ease;
+      position: relative;
       overflow: hidden;
-      padding: 0;
-      position: absolute;
     }
-    .switch__label {
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary-gradient);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--card-shadow-hover);
+    }
+
+    .glass-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .project-card {
       position: relative;
-      display: inline-block;
-      width: 120px;
+      min-height: 280px;
+    }
+
+    .project-card .card-body {
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .project-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .project-icon {
+      width: 60px;
       height: 60px;
-      background-color: #2b2b2b;
-      border: 5px solid #5b5b5b;
-      border-radius: 9999px;
-      cursor: pointer;
-      transition: all 0.4s ease;
+      border-radius: 16px;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1.5rem;
+      color: white;
+      font-size: 1.4rem;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     }
-    .switch__indicator {
+
+    .project-title {
+      font-weight: 600;
+      font-size: 1.35rem;
+      color: #2d3748;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .project-description {
+      color: #718096;
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      flex-grow: 1;
+      min-height: 1.5rem;
+    }
+
+    .count-display {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1.15rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-modern {
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      flex: 1;
+      margin: 0.25rem;
+    }
+
+    .btn-modern::before {
+      content: '';
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) translateX(-72%);
-      display: block;
-      width: 40px;
-      height: 40px;
-      background-color: #7b7b7b;
-      border-radius: 9999px;
-      box-shadow: 10px 0px 0 0 rgba(0, 0, 0, 0.2) inset;
-      transition: all 0.4s ease;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
     }
-    .switch__indicator::before,
-    .switch__indicator::after {
-      position: absolute;
-      content: "";
-      display: block;
-      background-color: #ffffff;
-      border-radius: 9999px;
-      transition: all 0.4s ease;
+
+    .btn-modern:hover::before {
+      left: 100%;
     }
-    .switch__indicator::before {
-      top: 7px;
-      left: 7px;
-      width: 9px;
-      height: 9px;
-      opacity: 0.6;
+
+    .btn-ping {
+      background: var(--success-gradient);
+      color: white;
+      box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
     }
-    .switch__indicator::after {
-      bottom: 8px;
-      right: 6px;
-      width: 14px;
-      height: 14px;
-      opacity: 0.8;
+
+    .btn-ping:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+      color: white;
     }
-    .switch__decoration {
-      position: absolute;
-      top: 65%;
-      left: 50%;
-      display: block;
-      width: 5px;
-      height: 5px;
-      background-color: #ffffff;
-      border-radius: 9999px;
-      animation: twinkle 0.8s infinite -0.6s;
+
+    .btn-edit {
+      background: var(--warning-gradient);
+      color: white;
+      box-shadow: 0 4px 15px rgba(247, 112, 154, 0.3);
     }
-    .switch__decoration::before,
-    .switch__decoration::after {
-      position: absolute;
-      display: block;
-      content: "";
-      width: 5px;
-      height: 5px;
-      background-color: #ffffff;
-      border-radius: 9999px;
+
+    .btn-edit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(247, 112, 154, 0.4);
+      color: white;
     }
-    .switch__decoration::before {
-      top: -20px;
-      left: 10px;
-      animation: twinkle 0.6s infinite;
+
+    .btn-delete {
+      background: var(--danger-gradient);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 154, 158, 0.3);
+	  text-align: center;
     }
-    .switch__decoration::after {
-      top: -7px;
-      left: 30px;
-      animation: twinkle 0.6s infinite -0.2s;
+
+    .btn-delete:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 154, 158, 0.4);
+      color: white;
     }
-    @keyframes twinkle {
-      50% { opacity: 0.2; }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: auto;
     }
-    .switch__input:checked + .switch__label {
-      background-color: #8fb5f5;
-      border-color: #347cf8;
+
+    .input-group-modern {
+      position: relative;
+      margin-bottom: 2rem;
     }
-    .switch__input:checked + .switch__label .switch__indicator {
-      background-color: #ecd21f;
-      box-shadow: none;
-      transform: translate(-50%, -50%) translateX(72%);
+
+    .form-control-modern {
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: var(--border-radius);
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
     }
-    .switch__input:checked + .switch__label .switch__decoration {
-      top: 50%;
-      transform: translate(0%, -50%);
-      animation: cloud 8s linear infinite;
+
+    .form-control-modern:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .btn-add {
+      background: var(--primary-gradient);
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 1rem 2rem;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      color: white;
+    }
+
+    .header-title {
+      font-weight: 700;
+      font-size: 2.5rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .config-modal .modal-content {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius);
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      flex: 1;
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #718096;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+
+    .loading-spinner {
+      display: inline-block;
       width: 20px;
       height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
     }
-    .switch__input:checked + .switch__label .switch__decoration::before {
-      width: 10px;
-      height: 10px;
-      top: auto;
-      bottom: 0;
-      left: -8px;
-      animation: none;
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
-    .switch__input:checked + .switch__label .switch__decoration::after {
-      width: 15px;
-      height: 15px;
-      top: auto;
-      bottom: 0;
-      left: 16px;
-      animation: none;
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
     }
-    .switch__input:checked + .switch__label .switch__decoration,
-    .switch__input:checked + .switch__label .switch__decoration::before,
-    .switch__input:checked + .switch__label .switch__decoration::after {
-      border-radius: 9999px 9999px 0 0;
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .switch__input:checked + .switch__label .switch__decoration::after {
-      border-bottom-right-radius: 9999px;
+
+    .pulse {
+      animation: pulse 2s infinite;
     }
-    @keyframes cloud {
-      0% { transform: translate(0%, -50%); }
-      50% { transform: translate(-50%, -50%); }
-      100% { transform: translate(0%, -50%); }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    @media (max-width: 768px) {
+      .header-title {
+        font-size: 2rem;
+      }
+
+      .stats-row {
+        flex-direction: column;
+      }
+
+      .project-card .card-body {
+        padding: 1.5rem;
+      }
+
+      .project-icon {
+        width: 50px;
+        height: 50px;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+      }
+
+      .project-title {
+        font-size: 1.2rem;
+      }
+
+      .btn-modern {
+        font-size: 0.8rem;
+        padding: 0.6rem 1.2rem;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .button-group .btn-modern {
+        margin: 0.25rem 0;
+      }
     }
   </style>
 </head>
 
-<body class="bg-light">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark" id="navbar">
+<body>
+  <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">CounterAPI</a>
-      <div class="d-flex align-items-center">
-        <div class="switch me-3">
-          <input type="checkbox" class="switch__input" id="themeToggle" />
-          <label aria-hidden="true" class="switch__label" for="themeToggle">
-            <span aria-hidden="true" class="switch__indicator"></span>
-            <span aria-hidden="true" class="switch__decoration"></span>
-          </label>
-        </div>
-      </div>
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <img src="icon.png" alt="CounterAPI" width="32" height="32" class="me-2">
+        CounterAPI
+      </a>
+      <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#configModal">
+        <i class="fas fa-cog me-2"></i>Settings
+      </button>
     </div>
   </nav>
 
   <div class="container py-5">
-    <h1 class="mb-4">Project Visit Counter</h1>
-    <div class="mb-4">
-      <input type="text" id="project-name-input" class="form-control d-inline w-50" placeholder="Enter project name">
-      <button id="add-project-button" class="btn btn-primary ms-2">Add Project</button>
+    <h1 class="header-title">
+      <img src="icon.png" alt="CounterAPI" width="48" height="48" class="me-3">
+      Project Analytics Dashboard
+    </h1>
+
+    <div class="stats-row">
+      <div class="glass-card stat-card">
+        <div class="stat-number" id="total-projects">0</div>
+        <div class="stat-label">Total Projects</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-number" id="total-visits">0</div>
+        <div class="stat-label">Total Visits</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-number" id="avg-visits">0</div>
+        <div class="stat-label">Avg per Project</div>
+      </div>
     </div>
+
+    <div class="input-group-modern">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <input type="text" id="project-name-input" class="form-control form-control-modern"
+                 placeholder="Enter project name">
+        </div>
+        <div class="col-md-4">
+          <input type="text" id="project-desc-input" class="form-control form-control-modern"
+                 placeholder="Enter description (optional)">
+        </div>
+        <div class="col-md-2">
+          <button id="add-project-button" class="btn btn-add w-100">
+            <i class="fas fa-plus me-2"></i>Add Project
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div id="project-tiles-container" class="row g-4"></div>
+
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <i class="fas fa-chart-bar"></i>
+      <h3>No Projects Yet</h3>
+      <p>Add your first project to start tracking usage statistics!</p>
+    </div>
+  </div>
+
+  <!-- Configuration Modal -->
+  <div class="modal fade config-modal" id="configModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-server me-2"></i>API Configuration
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="api-url" class="form-label">Backend API URL</label>
+            <input type="text" id="api-url" class="form-control form-control-modern"
+                   placeholder="https://your-api.onrender.com">
+            <div class="form-text">
+              <strong>Environment detected:</strong> <span id="environment-info"></span><br>
+              Change this URL to connect to a different CounterAPI backend
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success" onclick="testConnection()">
+              <i class="fas fa-wifi me-2"></i>Test Connection
+            </button>
+            <button type="button" class="btn btn-primary" onclick="saveConfig()">
+              <i class="fas fa-save me-2"></i>Save
+            </button>
+          </div>
+          <div id="connection-status" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="successToast" class="toast" role="alert">
+      <div class="toast-header">
+        <i class="fas fa-check-circle text-success me-2"></i>
+        <strong class="me-auto">Success</strong>
+      </div>
+      <div class="toast-body"></div>
+    </div>
+    <div id="errorToast" class="toast" role="alert">
+      <div class="toast-header">
+        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+        <strong class="me-auto">Error</strong>
+      </div>
+      <div class="toast-body"></div>
+    </div>
   </div>
 
   <script>
-    let apiBase = localStorage.getItem('apiBase');
-    if (!apiBase) {
-      apiBase = prompt("Enter your CounterAPI backend URL (e.g. https://yourname.onrender.com):")?.trim();
-      if (!apiBase) alert("A valid backend URL is required.");
-      else localStorage.setItem('apiBase', apiBase);
+    let apiBase = '';
+    const apiInput = document.getElementById('api-url');
+    const projectContainer = document.getElementById('project-tiles-container');
+    const emptyState = document.getElementById('empty-state');
+    const addButton = document.getElementById('add-project-button');
+
+    // Detect environment and initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      detectEnvironmentAndInitialize();
+      setupEventListeners();
+    });
+
+    function detectEnvironmentAndInitialize() {
+      const isOnRender = window.location.hostname.includes('onrender.com') ||
+                        window.location.hostname.includes('render.com') ||
+                        (window.location.protocol === 'https:' &&
+                         !window.location.hostname.includes('github.io'));
+
+      const isGitHubPages = window.location.hostname.includes('github.io');
+
+      // Update environment info in the modal
+      const envInfo = document.getElementById('environment-info');
+      if (envInfo) {
+        if (isOnRender) {
+          envInfo.innerHTML = '<span class="badge bg-success">Render (Auto-configured)</span>';
+        } else if (isGitHubPages) {
+          envInfo.innerHTML = '<span class="badge bg-info">GitHub Pages (Manual config)</span>';
+        } else {
+          envInfo.innerHTML = '<span class="badge bg-warning">Static Host (Manual config)</span>';
+        }
+      }
+
+      // Always ask for URL on first run, regardless of environment
+      initializeAPIFromStorage();
     }
 
-    function loadProjects() {
-      fetch(`${apiBase}/projects`)
-        .then(res => res.json())
-        .then(projects => {
-          const container = document.getElementById('project-tiles-container');
-          container.innerHTML = '';
-          projects.forEach(({ name, description, count }) => createTile(name, description, count));
-          applyDarkMode();
-        });
+    function initializeAPIFromStorage() {
+      apiBase = localStorage.getItem('apiBase');
+      if (!apiBase) {
+        // Show configuration prompt for first-time users
+        const userInput = prompt(
+          `Welcome to CounterAPI Dashboard!\n\n` +
+          `Please enter your CounterAPI backend URL to get started.\n\n` +
+          `Examples:\n` +
+          `• https://your-api.onrender.com\n` +
+          `• https://projectcounter.onrender.com (demo)\n` +
+          `• http://localhost:8000 (local development)\n\n` +
+          `Enter your API URL:`
+        );
+
+        if (!userInput || !userInput.trim()) {
+          showToast('errorToast', 'A valid backend URL is required to use this dashboard.');
+          // Show the configuration modal if user cancels
+          setTimeout(() => {
+            const configModal = new bootstrap.Modal(document.getElementById('configModal'));
+            configModal.show();
+          }, 1000);
+          return;
+        }
+
+        apiBase = userInput.trim();
+        // Remove trailing slash if present
+        if (apiBase.endsWith('/')) {
+          apiBase = apiBase.slice(0, -1);
+        }
+
+        localStorage.setItem('apiBase', apiBase);
+        showToast('successToast', 'API URL configured successfully!');
+      }
+
+      apiInput.value = apiBase;
+      loadProjects();
     }
 
-    function createTile(name, desc, count) {
-      const container = document.getElementById('project-tiles-container');
+    function setupEventListeners() {
+      document.getElementById('add-project-button').addEventListener('click', addProject);
+      document.getElementById('project-name-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addProject();
+      });
+      document.getElementById('project-desc-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addProject();
+      });
+    }
+
+    async function loadProjects() {
+      if (!apiBase) return;
+
+      try {
+        const response = await fetch(`${apiBase}/projects`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const projects = await response.json();
+        renderProjects(projects);
+        updateStats(projects);
+      } catch (error) {
+        console.error('Failed to load projects:', error);
+        showToast('errorToast', 'Failed to load projects. Check your API URL in Settings.');
+      }
+    }
+
+    function renderProjects(projects) {
+      projectContainer.innerHTML = '';
+
+      if (projects.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+
+      projects.forEach((project, index) => {
+        setTimeout(() => {
+          createProjectTile(project);
+        }, index * 100);
+      });
+    }
+
+    function createProjectTile(project) {
+      const { name, description, count } = project;
       const col = document.createElement('div');
-      col.className = 'col-md-4';
+      col.className = 'col-lg-4 col-md-6 fade-in';
+
+      const iconOptions = ['fas fa-rocket', 'fas fa-code', 'fas fa-globe', 'fas fa-mobile-alt',
+                          'fas fa-desktop', 'fas fa-database', 'fas fa-cloud', 'fas fa-cogs'];
+      const randomIcon = iconOptions[Math.floor(Math.random() * iconOptions.length)];
+
       col.innerHTML = `
-        <div class="card h-100">
+        <div class="glass-card project-card">
           <div class="card-body">
-            <h5 class="card-title">${name}</h5>
-            ${desc ? `<p class="card-text">${desc}</p>` : ''}
-            <p class="card-text"><strong>Count:</strong> ${count}</p>
-            <button class="btn btn-success me-2" onclick="pingProject('${name}')">Ping</button>
-            <button class="btn btn-warning me-2" onclick="editProjectPrompt('${name}')">Edit</button>
-            <button class="btn btn-danger" onclick="deleteProject('${name}')">Delete</button>
+            <div class="project-header">
+              <div class="project-icon">
+                <i class="${randomIcon}"></i>
+              </div>
+              <h5 class="project-title">${escapeHtml(name)}</h5>
+            </div>
+            ${description ? `<p class="project-description">${escapeHtml(description)}</p>` : '<p class="project-description">No description provided</p>'}
+            <div class="count-display">
+              <i class="fas fa-eye me-2"></i>${count.toLocaleString()} visits
+            </div>
+            <div class="button-group">
+              <button class="btn btn-modern btn-ping" onclick="pingProject('${escapeHtml(name)}')">
+                <i class="fas fa-mouse-pointer me-1"></i>Ping
+              </button>
+              <button class="btn btn-modern btn-edit" onclick="editProject('${escapeHtml(name)}')">
+                <i class="fas fa-edit me-1"></i>Edit
+              </button>
+              <button class="btn btn-modern btn-delete" text-align="center" onclick="deleteProject('${escapeHtml(name)}')">
+                <i class="fas fa-trash me-1"></i>Delete
+              </button>
+            </div>
           </div>
-        </div>`;
-      container.appendChild(col);
+        </div>
+      `;
+
+      projectContainer.appendChild(col);
     }
 
-    function applyDarkMode() {
-      const isDark = localStorage.getItem('darkMode') === 'true';
-      document.body.classList.toggle('dark-mode', isDark);
-      document.getElementById('navbar').classList.toggle('dark-mode', isDark);
-      // Toggle card dark mode
-      document.querySelectorAll('.card').forEach(card => {
-        card.classList.toggle('dark-mode', isDark);
-      });
-      // Toggle input dark mode
-      const input = document.getElementById('project-name-input');
-      if (input) {
-        input.classList.toggle('bg-dark', isDark);
-        input.classList.toggle('text-light', isDark);
-        input.classList.toggle('bg-light', !isDark);
-        input.classList.toggle('text-dark', !isDark);
+    function updateStats(projects) {
+      const totalProjects = projects.length;
+      const totalVisits = projects.reduce((sum, project) => sum + project.count, 0);
+      const avgVisits = totalProjects > 0 ? Math.round(totalVisits / totalProjects) : 0;
+
+      document.getElementById('total-projects').textContent = totalProjects;
+      document.getElementById('total-visits').textContent = totalVisits.toLocaleString();
+      document.getElementById('avg-visits').textContent = avgVisits.toLocaleString();
+    }
+
+    async function addProject() {
+      const nameInput = document.getElementById('project-name-input');
+      const descInput = document.getElementById('project-desc-input');
+      const name = nameInput.value.trim();
+      const description = descInput.value.trim();
+
+      if (!name) {
+        showToast('errorToast', 'Please enter a project name');
+        return;
       }
-      // Toggle container dark mode
-      const container = document.querySelector('.container');
-      if (container) {
-        container.classList.toggle('dark-mode', isDark);
-        container.classList.toggle('bg-light', !isDark);
-      }
-    }
 
-    function pingProject(name) {
-      fetch(`${apiBase}/ping/${name}`, { method: 'POST' })
-        .then(() => loadProjects());
-    }
+      addButton.innerHTML = '<span class="loading-spinner me-2"></span>Adding...';
+      addButton.disabled = true;
 
-    function deleteProject(name) {
-      fetch(`${apiBase}/projects/${name}`, { method: 'DELETE' })
-        .then(() => loadProjects());
-    }
-
-    function editProjectPrompt(name) {
-      fetch(`${apiBase}/projects`)
-        .then(res => res.json())
-        .then(projects => {
-          const current = projects.find(p => p.name === name);
-          const newName = prompt('New name:', current?.name || name);
-          const newDesc = prompt('New description:', current?.description || '');
-          if (newName || newDesc !== null) {
-            fetch(`${apiBase}/projects/${name}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ new_name: newName || name, description: newDesc })
-            }).then(() => loadProjects());
-          }
+      try {
+        const response = await fetch(`${apiBase}/projects`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, description })
         });
-    }
 
-    document.getElementById('add-project-button').addEventListener('click', () => {
-      const name = document.getElementById('project-name-input').value.trim();
-      if (!name) return alert('Enter a project name.');
-      fetch(`${apiBase}/projects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-      }).then(() => {
-        document.getElementById('project-name-input').value = '';
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || `HTTP ${response.status}`);
+        }
+
+        nameInput.value = '';
+        descInput.value = '';
+        showToast('successToast', `Project "${name}" added successfully!`);
         loadProjects();
-      });
-    });
-
-    const themeToggle = document.getElementById('themeToggle');
-    if (localStorage.getItem('darkMode') === 'true') {
-      themeToggle.checked = true;
+      } catch (error) {
+        showToast('errorToast', error.message);
+      } finally {
+        addButton.innerHTML = '<i class="fas fa-plus me-2"></i>Add Project';
+        addButton.disabled = false;
+      }
     }
-    applyDarkMode();
-    themeToggle.addEventListener('change', (e) => {
-      const isDark = e.target.checked;
-      localStorage.setItem('darkMode', isDark);
-      applyDarkMode();
-    });
 
-    loadProjects();
+    async function pingProject(name) {
+      try {
+        const response = await fetch(`${apiBase}/ping`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        showToast('successToast', `Pinged "${name}" successfully!`);
+        loadProjects();
+      } catch (error) {
+        showToast('errorToast', `Failed to ping "${name}"`);
+      }
+    }
+
+    async function editProject(name) {
+      try {
+        const response = await fetch(`${apiBase}/projects`);
+        const projects = await response.json();
+        const project = projects.find(p => p.name === name);
+
+        const newName = prompt('Enter new name:', project?.name || name);
+        if (newName === null) return;
+
+        const newDesc = prompt('Enter new description:', project?.description || '');
+        if (newDesc === null) return;
+
+        const updateResponse = await fetch(`${apiBase}/projects?name=${encodeURIComponent(name)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            new_name: newName.trim() || name,
+            description: newDesc.trim()
+          })
+        });
+
+        if (!updateResponse.ok) throw new Error(`HTTP ${updateResponse.status}`);
+
+        showToast('successToast', `Project "${name}" updated successfully!`);
+        loadProjects();
+      } catch (error) {
+        showToast('errorToast', `Failed to update "${name}"`);
+      }
+    }
+
+    async function deleteProject(name) {
+      if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiBase}/projects?name=${encodeURIComponent(name)}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        showToast('successToast', `Project "${name}" deleted successfully!`);
+        loadProjects();
+      } catch (error) {
+        showToast('errorToast', `Failed to delete "${name}"`);
+      }
+    }
+
+    async function testConnection() {
+      const url = apiInput.value.trim();
+      const statusDiv = document.getElementById('connection-status');
+
+      if (!url) {
+        statusDiv.innerHTML = '<div class="alert alert-warning">Please enter a URL</div>';
+        return;
+      }
+
+      statusDiv.innerHTML = '<div class="alert alert-info">Testing connection...</div>';
+
+      try {
+        const response = await fetch(`${url}/projects`);
+        if (response.ok) {
+          statusDiv.innerHTML = '<div class="alert alert-success">✅ Connection successful!</div>';
+        } else {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } catch (error) {
+        statusDiv.innerHTML = `<div class="alert alert-danger">❌ Connection failed: ${error.message}</div>`;
+      }
+    }
+
+    function saveConfig() {
+      const newUrl = apiInput.value.trim();
+      if (newUrl) {
+        // Remove trailing slash if present
+        const cleanUrl = newUrl.endsWith('/') ? newUrl.slice(0, -1) : newUrl;
+        apiBase = cleanUrl;
+        localStorage.setItem('apiBase', cleanUrl);
+        showToast('successToast', 'Configuration saved successfully!');
+        loadProjects();
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('configModal'));
+        modal.hide();
+      }
+    }
+
+    function showToast(toastId, message) {
+      const toast = document.getElementById(toastId);
+      const body = toast.querySelector('.toast-body');
+      body.textContent = message;
+
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
   </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
-</html>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.

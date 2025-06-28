@@ -51,7 +51,7 @@ class ProjectPing(BaseModel):
 # Serve dashboard
 @app.get("/")
 def root():
-    return FileResponse("dashboard.html")
+    return FileResponse("index.html")
 
 
 @app.get("/projects")
