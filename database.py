@@ -1,7 +1,10 @@
-import sqlite3
 import os
+import sqlite3
 
-DB_PATH = os.getenv("DB_PATH", "/data/counters.db")
+DB_PATH = os.getenv("DB_PATH", "./counters.db")
+
+# Ensure the directory for the DB exists
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
