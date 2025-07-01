@@ -1,10 +1,11 @@
 import os
-import sqlite3
 from typing import Optional
 
+import psycopg2
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from psycopg2 import sql
 from pydantic import BaseModel
 
 from database import get_db, init_db
@@ -31,6 +32,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Models
 class ProjectBase(BaseModel):
@@ -59,81 +61,201 @@ def get_projects():
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT name, description, count FROM projects")
-    return [{"name": n, "description": d, "count": c} for n, d, c in cursor.fetchall()]
+    projects = [
+        {"name": n, "description": d, "count": c} for n, d, c in cursor.fetchall()
+    ]
+    cursor.close()
+    db.close()
+    return projects
 
 
 @app.post("/projects")
 def create_project(proj: ProjectBase):
     db = get_db()
+    cursor = db.cursor()
     try:
-        db.execute(
-            "INSERT INTO projects (name, description) VALUES (?, ?)",
+        cursor.execute(
+            "INSERT INTO projects (name, description) VALUES (%s, %s)",  # Use %s for psycopg2
             (proj.name, proj.description),
         )
         db.commit()
-    except sqlite3.IntegrityError:
-        raise HTTPException(400, f"Project already exists. See: {WIKI_URL}")
-    return {"message": f"Project '{proj.name}' added"}
+        cursor.close()
+        db.close()
+        return {"message": f"Project '{proj.name}' created successfully"}
+
+    # except sqlite3.IntegrityError: # Remove this line
+    except (
+        psycopg2.errors.UniqueViolation
+    ):  # Add this line for PostgreSQL unique constraint error
+        db.rollback()  # Rollback transaction on error
+        cursor.close()
+        db.close()
+        raise HTTPException(
+            status_code=400, detail=f"Project '{proj.name}' already exists"
+        )
+    except Exception as e:
+        db.rollback()
+        cursor.close()
+        db.close()
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
 
 @app.put("/projects")
-def update_project(body: ProjectUpdate, request: Request):
-    name = request.query_params.get("name")
-    if not name:
-        raise HTTPException(400, f"Project name is required in query. See: {WIKI_URL}")
-
+def update_project(name: str, proj: ProjectUpdate):
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT 1 FROM projects WHERE name = ?", (name,))
-    if not cursor.fetchone():
-        raise HTTPException(404, f"Project not found. See: {WIKI_URL}")
+    updates = []
+    values = []
 
-    if body.new_name:
-        cursor.execute(
-            "UPDATE projects SET name = ? WHERE name = ?", (body.new_name, name)
+    if proj.new_name is not None:
+        updates.append("name = %s")  # Use %s
+        values.append(proj.new_name)
+    if proj.description is not None:
+        updates.append("description = %s")  # Use %s
+        values.append(proj.description)
+    if proj.count is not None:
+        updates.append("count = %s")  # Use %s
+        values.append(proj.count)
+
+    if not updates:
+        cursor.close()
+        db.close()
+        raise HTTPException(status_code=400, detail="No fields provided for update")
+
+    values.append(name)  # Add the original name for the WHERE clause
+    query = f"UPDATE projects SET {', '.join(updates)} WHERE name = %s"  # Use %s
+
+    try:
+        cursor.execute(query, values)
+        db.commit()
+        rows_affected = cursor.rowcount
+        cursor.close()
+        db.close()
+
+        if rows_affected == 0:
+            raise HTTPException(status_code=404, detail=f"Project '{name}' not found")
+
+        return {"message": f"Project '{name}' updated successfully"}
+
+    except (
+        psycopg2.errors.UniqueViolation
+    ):  # Handle unique name constraint if new_name is provided
+        db.rollback()
+        cursor.close()
+        db.close()
+        raise HTTPException(
+            status_code=400, detail=f"Project name '{proj.new_name}' already exists"
         )
-    if body.description is not None:
-        cursor.execute(
-            "UPDATE projects SET description = ? WHERE name = ?",
-            (body.description, body.new_name or name),
-        )
-    if body.count is not None:
-        cursor.execute(
-            "UPDATE projects SET count = ? WHERE name = ?",
-            (body.count, body.new_name or name),
-        )
+    except Exception as e:
+        db.rollback()
+        cursor.close()
+        db.close()
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
-    db.commit()
-    return {"message": "Updated"}
 
-@app.delete("/projects")
-def delete_project(request: Request):
-    name = request.query_params.get("name")
-    if not name:
-        raise HTTPException(400, f"Project name is required in query. See: {WIKI_URL}")
-
+@app.delete("/projects/{name}")
+def delete_project(name: str):
     db = get_db()
-    db.execute("DELETE FROM projects WHERE name = ?", (name,))
-    db.commit()
-    return {"message": f"Deleted {name}"}
+    cursor = db.cursor()
+    try:
+        cursor.execute(
+            "DELETE FROM projects WHERE name = %s", (name,)
+        )  # Use %s, note the comma for tuple
+        db.commit()
+        rows_affected = cursor.rowcount
+        cursor.close()
+        db.close()
 
-@app.post("/ping")
+        if rows_affected == 0:
+            raise HTTPException(status_code=404, detail=f"Project '{name}' not found")
+
+        return {"message": f"Project '{name}' deleted successfully"}
+
+    except Exception as e:
+        db.rollback()
+        cursor.close()
+        db.close()
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+
+
+@app.post("/projects/ping")
 def ping_project(proj: ProjectPing):
-    name = proj.name
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("INSERT OR IGNORE INTO projects (name) VALUES (?)", (name,))
-    cursor.execute("UPDATE projects SET count = count + 1 WHERE name = ?", (name,))
-    db.commit()
-    return {"message": f"Ping received for {name}"}
+    try:
+        cursor.execute(
+            "UPDATE projects SET count = count + 1 WHERE name = %s RETURNING name, count",  # Use %s, RETURNING is useful
+            (proj.name,),  # Note the comma for tuple
+        )
+        result = cursor.fetchone()
+        db.commit()
+        cursor.close()
+        db.close()
+
+        if result is None:
+            raise HTTPException(
+                status_code=404, detail=f"Project '{proj.name}' not found"
+            )
+
+        name, count = result
+        return {"name": name, "count": count}
+
+    except Exception as e:
+        db.rollback()
+        cursor.close()
+        db.close()
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+
+
+# Endpoint to get deployment info
+@app.get("/info")
+def get_info(request: Request):
+    return {
+        "service_name": RENDER_SERVICE_NAME,
+        "service_id": RENDER_SERVICE_ID,
+        "external_url": RENDER_EXTERNAL_URL,
+        "git_branch": RENDER_GIT_BRANCH,
+        "git_commit": RENDER_GIT_COMMIT,
+        "wiki_url": WIKI_URL,
+        "cors_allow_origins": request.app.middleware[0].options.get(
+            "allow_origins"
+        ),  # Access CORS config
+    }
+
 
 @app.get("/meta")
-def get_meta():
-    return {
-        "repo": REPO_SLUG,
-        "wiki": WIKI_URL,
-        "commit": RENDER_GIT_COMMIT,
-        "branch": RENDER_GIT_BRANCH,
-        "service": RENDER_SERVICE_NAME,
-        "external_url": RENDER_EXTERNAL_URL,
+def meta_info():
+    db = get_db()
+    cursor = db.cursor()
+    # Get all tables
+    cursor.execute(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+    )
+    tables = [row[0] for row in cursor.fetchall()]
+    db_info = {
+        "db_host": os.getenv("DB_HOST"),
+        "db_port": os.getenv("DB_PORT"),
+        "db_name": os.getenv("DB_NAME"),
+        "db_user": os.getenv("DB_USER"),
+        "tables": {},
     }
+    for table in tables:
+        # Get columns
+        cursor.execute(
+            "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = %s",
+            (table,),
+        )
+        columns = cursor.fetchall()
+        # Get row count (safe SQL identifier)
+        cursor.execute(
+            sql.SQL("SELECT COUNT(*) FROM {} ").format(sql.Identifier(table))
+        )
+        row = cursor.fetchone()
+        row_count = row[0] if row else 0
+        db_info["tables"][table] = {
+            "columns": [{"name": c[0], "type": c[1]} for c in columns],
+            "row_count": row_count,
+        }
+    cursor.close()
+    db.close()
+    return db_info

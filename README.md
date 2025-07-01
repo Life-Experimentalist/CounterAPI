@@ -1,7 +1,13 @@
 # 📊 CounterAPI
 
+![No code changes required – just deploy and configure!](https://img.shields.io/badge/No%20Code%20Changes-Just%20Deploy%20%26%20Configure-brightgreen)
+
 **CounterAPI** is a fully self-hosted API service to track how many times your projects are used.
-Powered by **FastAPI** and **SQLite**, it's ideal for hobby projects, dev dashboards, or lightweight analytics.
+Powered by **FastAPI** and **PostgreSQL**, it's ideal for hobby projects, dev dashboards, or lightweight analytics.
+
+---
+
+> **See [`USAGE.md`](USAGE.md) for quick curl/API examples!**
 
 ---
 
@@ -10,7 +16,7 @@ Powered by **FastAPI** and **SQLite**, it's ideal for hobby projects, dev dashbo
 * 🔁 Track project usage with simple HTTP pings
 * 🧓 View all counters in a clean JSON format
 * 🛠️ Full CRUD: Add, edit, rename, or delete projects
-* 📂 Persistent storage using SQLite (file-based)
+* 📂 Persistent storage using **PostgreSQL** (free via Filess.io)
 * 🚀 One-click deploy to Render (completely free)
 * 🧪 Comes with Postman Collection for quick testing
 * 🛡️ Automatically configures GitHub Wiki fallback for docs
@@ -21,180 +27,71 @@ Powered by **FastAPI** and **SQLite**, it's ideal for hobby projects, dev dashbo
 
 * **Frontend (optional)**: Single-page UI served from Render (index.html)
 * **Backend**: FastAPI app handling all API routes
-* **Database**: Local SQLite (`counters.db`)
+* **Database**: **PostgreSQL** (hosted separately, e.g., on Filess.io)
 * **Hosting**: [Render.com](https://render.com) (Free tier)
 * **Deployment**: Done via `render.yaml` auto-detected during setup
 
----
-
-## 🚀 Getting Started
-
-### 1. 🔁 Fork This Repo
-
-Click the [Fork button](https://github.com/Life-Experimentalist/CounterAPI/fork) and clone it locally:
-
-```bash
-git clone https://github.com/your-username/CounterAPI.git
-cd CounterAPI
+```mermaid
+graph LR
+    A[UI: index.html (GitHub Pages/Local)] --> B(FastAPI Backend);
+    B --> C[PostgreSQL Database];
+    B --> U[Render Cloud Web Service];
+    U --> B;
 ```
 
 ---
 
-### 2. 🧪 Run Locally
+## 🚀 Deploy in Minutes (No Coding Required!)
 
-Install dependencies:
+### 1. Create a Free PostgreSQL Database
 
-```bash
-pip install -r requirements.txt
-```
+- [![Create Free DB on Filess.io](https://img.shields.io/badge/Create%20Free%20DB-Filess.io-blue?logo=postgresql)](https://filess.io/)
+- Go to [Filess.io Free Cloud DB Plans](https://filess.io/) and sign up for a free account.
+- Create a new PostgreSQL database (choose the latest version if possible).
+- Copy your database credentials (host, port, db name, user, password).
+- **Or see [this gist for more free cloud DB options](https://gist.github.com/bmaupin/0ce79806467804fdbbf8761970511b8c).**
 
-Start the dev server:
+### 2. Deploy to Render
 
-```bash
-uvicorn main:app --reload
-```
-
-Now open: [http://localhost:8000/projects](http://localhost:8000/projects)
-
----
-
-### 3. 🌐 Deploy on Render (One Click)
-
-Just click this button:
+- Click this button:
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Life-Experimentalist/CounterAPI)
 
-Render will:
+- Render will detect `render.yaml` and prompt you for environment variables:
+    - `DB_HOST` (e.g. `your-db-host.filess.io`)
+    - `DB_PORT` (e.g. `5432` or as given by Filess.io)
+    - `DB_NAME` (your database name)
+    - `DB_USER` (your database user)
+    - `DB_PASS` (your database password)
+- Fill in these values from your Filess.io dashboard.
+- Choose a service name and region (pick one close to your DB for best speed).
+- Click **Create Web Service** and wait for deployment.
 
-* Detect `render.yaml`
-* Ask for a **custom web service name** (e.g. `yourname-counterapi`)
-* Deploy it with persistent SQLite database
-
-Once deployed, your base URL will be:
-
-```
-https://<your-custom-name>.onrender.com
-```
+That's it! Your API is live and ready to use. No code changes or manual setup required.
 
 ---
 
 ## 📡 API Reference
 
-### ➕ Add Project
-
-```http
-POST /projects
-{
-  "name": "my-cool-app",
-  "description": "My test project"
-}
-```
-
-### ✏️ Update Project
-
-```http
-PUT /projects
-{
-  "name": "my-cool-app",
-  "new_name": "my-updated-app",
-  "description": "Updated desc"
-}
-```
-
-### ❌ Delete Project
-
-```http
-DELETE /projects
-{
-  "name": "my-cool-app"
-}
-```
-
-### 📈 Ping (Increment Count)
-
-```http
-POST /ping
-{
-  "name": "my-cool-app"
-}
-```
-
-### 📊 List All Projects
-
-```http
-GET /projects
-```
-
-All endpoints return a JSON response.
-If a project is not found, a helpful error message with a link to the Wiki is returned automatically.
+- `GET /projects` — List all projects
+- `POST /projects` — Add a new project
+- `PUT /projects` — Update a project
+- `DELETE /projects/{name}` — Delete a project
+- `POST /projects/ping` — Increment a project's count
+- `GET /meta` — View detailed database info (tables, columns, row counts, connection info)
 
 ---
 
-## 📂 Project Structure
+## 🧩 Tech Stack
 
-```
-CounterAPI/
-├── main.py              # FastAPI logic
-├── database.py          # SQLite setup
-├── requirements.txt     # Python dependencies
-├── render.yaml          # Render deployment descriptor
-├── index.html           # UI frontend (served by backend)
-├── architecture.md      # Mermaid diagrams + explanations
-├── todo.md              # Planned roadmap
-└── counters.db          # SQLite file (auto-created)
-```
+* [FastAPI](https://fastapi.tiangolo.com/) - backend framework
+* [PostgreSQL](https://www.postgresql.org/) - [free cloud database](https://www.filess.io)
+* [Render](https://render.com/) - free cloud hosting
+* [GitHub Pages](https://pages.github.com/) - static site hosting
 
 ---
 
-## 📄 .env Variables for Render
-
-No `.env` is required unless you want to override defaults.
-
-Optional environment variables:
-
-| Name                   | Description                                    |
-| ---------------------- | ---------------------------------------------- |
-| `RENDER_GIT_REPO_SLUG` | Auto-detected by Render (used for error links) |
-| `RENDER_EXTERNAL_URL`  | Auto-detected public API base URL              |
-
----
-
-## 🧪 Postman
-
-We provide a ready-made Postman collection to test all endpoints.
-
-### 📥 How to Use
-
-1. [Download `CounterAPI.postman_collection.json`](./postman/CounterAPI.postman_collection.json)
-2. Change the `base_url` at the bottom of the file from:
-3. Open [Postman](https://www.postman.com/)
-4. Click **Import → Upload Files** → Select the JSON file
-5. After import, **go to the "Variables" tab** inside the collection
-
-```
-https://projectcounter.onrender.com
-```
-
-to **your own deployed URL**, such as:
-
-```
-https://your-custom-name.onrender.com
-```
-
-Now you're ready to test all API routes directly! ✅
-
----
-
-## 🔧 Tech Stack
-
-* 🐍 Python 3.x
-* ⚡ FastAPI
-* 📓 SQLite
-* ☁️ Render.com
-
----
-
-## 📄 License
+## 🛡️ License
 
 Apache 2.0 – Free for personal, educational, and commercial use.
 
@@ -202,7 +99,15 @@ Apache 2.0 – Free for personal, educational, and commercial use.
 
 ## 🙋‍♀️ Contributing
 
-This project is forkable and beginner-friendly.
-Feel free to tweak, star, or fork it to build your own tracker!
+Want to run locally or contribute?
+
+- Clone the repo and install dependencies:
+  ```bash
+  git clone https://github.com/Life-Experimentalist/CounterAPI.git
+  cd CounterAPI
+  pip install -r requirements.txt psycopg2-binary
+  ```
+- Set up a local PostgreSQL database and configure the environment variables as in the deployment instructions.
+- PRs and suggestions are welcome!
 
 ---

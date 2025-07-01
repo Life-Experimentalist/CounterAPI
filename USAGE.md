@@ -1,49 +1,54 @@
-Here's a list of `curl` commands you can use to interact with your CounterAPI backend (hosted on Render, e.g. `https://yourname.onrender.com`). Replace `https://yourname.onrender.com` with your actual API base if different.
+# 📖 CounterAPI - Quick Usage Guide
+
+This guide provides quick curl/API examples for using your deployed CounterAPI instance.
 
 ---
 
-### ✅ 1. **Get all projects**
+## ➕ Add a New Project
 
 ```bash
-curl https://yourname.onrender.com/projects
-```
-
----
-
-### ✅ 2. **Add a new project**
-
-```bash
-curl -X POST https://yourname.onrender.com/projects \
+curl -X POST \
   -H "Content-Type: application/json" \
-  -d '{"name": "MyNewProject", "description": "An optional project description"}'
+  -d '{"name": "my-cool-app", "description": "An example project"}' \
+  https://<your-api-url>/projects
 ```
 
----
-
-### ✅ 3. **Ping a project (increment count)**
+## 📈 Ping (Increase Count)
 
 ```bash
-curl -X POST https://yourname.onrender.com/ping/MyNewProject
-```
-
----
-
-### ✅ 4. **Edit (rename/describe) a project**
-
-```bash
-curl -X PUT https://yourname.onrender.com/projects/MyNewProject \
+curl -X POST \
   -H "Content-Type: application/json" \
-  -d '{"new_name": "MyRenamedProject", "description": "Updated description"}'
+  -d '{"name": "my-cool-app"}' \
+  https://<your-api-url>/projects/ping
 ```
 
----
-
-### ✅ 5. **Delete a project**
+## 📊 Get All Projects
 
 ```bash
-curl -X DELETE https://yourname.onrender.com/projects/MyRenamedProject
+curl https://<your-api-url>/projects
+```
+
+## 🗑️ Delete a Project
+
+```bash
+curl -X DELETE https://<your-api-url>/projects/my-cool-app
+```
+
+## 🛠️ Update a Project
+
+```bash
+curl -X PUT \
+  -H "Content-Type: application/json" \
+  -d '{"new_name": "my-renamed-app", "description": "Updated description"}' \
+  "https://<your-api-url>/projects?name=my-cool-app"
+```
+
+## 🧬 View Database Meta Info
+
+```bash
+curl https://<your-api-url>/meta
 ```
 
 ---
 
-Let me know if you'd like a shell script that auto-generates these or you want Postman collection JSON too.
+Replace `<your-api-url>` with your deployed Render URL (e.g., `https://yourname-counterapi.onrender.com`).

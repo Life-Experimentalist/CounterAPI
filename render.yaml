@@ -2,25 +2,30 @@ services:
   - type: web
     name: ${RENDER_SERVICE_NAME}
     runtime: python
-    region: singapore
+    region: singapore # Choose a region close to your database
     plan: free
     branch: main
     rootDir: .
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt psycopg2-binary
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /projects
     autoDeployTrigger: commit
 
     envVars:
       - key: PORT
-        value: 10000
-      - key: DB_PATH
-        value: /data/counters.db
+        value: 10000 # Default port, Render will override with $PORT
+      # Database Credentials (REQUIRED - User must set these on Render dashboard)
+      # Get these from your PostgreSQL provider (e.g., Filess.io)
+      - key: DB_HOST
+        value: "" # Leave empty for user to fill on Render
+      - key: DB_PORT
+        value: "" # Leave empty for user to fill on Render (usually 5432 for PostgreSQL)
+      - key: DB_NAME
+        value: "" # Leave empty for user to fill on Render
+      - key: DB_USER
+        value: "" # Leave empty for user to fill on Render
+      - key: DB_PASS
+        value: "" # Leave empty for user to fill on Render
+      # CORS Configuration
       - key: CORS_ALLOW_ORIGINS
-        value: "*"
-
-    disk:
-      name: data-disk
-      mountPath: /data
-      sizeGB: 1
-
+        value: "*" # Set to specific origins in production
