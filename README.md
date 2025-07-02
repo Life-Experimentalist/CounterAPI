@@ -71,6 +71,32 @@ That's it! Your API is live and ready to use. No code changes or manual setup re
 
 ---
 
+## 🗄️ Initializing Your Database on Filess.io
+
+> If you are using Filess.io (or similar) for your PostgreSQL database, you must manually create the schema and table before deploying:
+
+> Please refer to [this](https://support.filess.io/hc/wiki/articles/1710108465-how-to-create-a-table-in-postgre_sql-with-web-client) for detailed instructions.
+
+1. **Create your PostgreSQL database** on Filess.io.
+2. **Access the web client** from your Filess.io dashboard.
+3. **Open a new query tab** (click the `+` at the top right).
+4. **Paste and run the following SQL** (click the `>` beside the line numbers to execute):
+
+```sql
+CREATE SCHEMA myschema; -- create the schema first (replace 'myschema' with your schema name if desired)
+
+CREATE TABLE myschema.projects (
+    name TEXT PRIMARY KEY,
+    description TEXT,
+    count INTEGER DEFAULT 0
+);
+```
+
+5. **Refresh the tables list** in the web client to confirm your table is created.
+6. **Set the `DB_SCHEMA` environment variable** in Render to match your schema name (e.g., `myschema`).
+
+---
+
 ## 📡 API Reference
 
 - `GET /projects` — List all projects

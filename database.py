@@ -7,25 +7,15 @@ DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS")
+DB_SCHEMA = os.getenv(
+    "DB_SCHEMA", "myschema"
+)  # Set your schema name here or via env var
 
-def init_db():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS public.projects (
-        name TEXT PRIMARY KEY,
-        description TEXT,
-        count INTEGER DEFAULT 0
-    )
-    """)
-    conn.commit()
-    cursor.close()
-    conn.close()
 
 def get_db():
     conn = psycopg2.connect(
         dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST, port=DB_PORT
     )
-    # Ensure the search_path is set to public
-    conn.cursor().execute("SET search_path TO public;")
+    # Set search_path to your schema
+    conn.cursor().execute(f"SET search_path TO {DB_SCHEMA};")
     return conn

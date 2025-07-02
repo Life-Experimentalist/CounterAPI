@@ -29,3 +29,13 @@ services:
       # CORS Configuration
       - key: CORS_ALLOW_ORIGINS
         value: "*" # Set to specific origins in production
+      - key: DB_SCHEMA
+        value: "myschema" # Default schema, user can change if needed
+
+    # Optional: Add a custom domain if you have one
+    # customDomains:
+    #   - domain: yourdomain.com
+    #     autoAssign: true
+
+    # Optional: Add a health check path to monitor service health
+    # healthCheckPath: /projects
