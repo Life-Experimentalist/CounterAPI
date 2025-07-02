@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 from psycopg2 import sql
 from pydantic import BaseModel
 
-from database import get_db, init_db
+from database import get_db
 
 # GitHub Wiki fallback
 REPO_SLUG = os.getenv("RENDER_GIT_REPO_SLUG", "Life-Experimentalist/CounterAPI")
@@ -22,7 +22,6 @@ RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL", "unknown")
 RENDER_GIT_BRANCH = os.getenv("RENDER_GIT_BRANCH", "main")
 
 app = FastAPI()
-init_db()
 
 # Enable CORS for all origins
 app.add_middleware(
