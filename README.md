@@ -32,11 +32,12 @@ Powered by **FastAPI** and **PostgreSQL**, it's ideal for hobby projects, dev da
 * **Deployment**: Done via `render.yaml` auto-detected during setup
 
 ```mermaid
-graph LR
-    A[UI: index.html (GitHub Pages/Local)] --> B(FastAPI Backend);
-    B --> C[PostgreSQL Database];
-    B --> U[Render Cloud Web Service];
-    U --> B;
+flowchart TD
+  A[UI: index.html - GitHub Pages/Local] -->|API Request| B[FastAPI Backend main.py]
+  B -->|DB Query| C[(PostgreSQL DB)]
+  B -->|Static File| A
+  B -->|Meta Info| D[Deployment/DB Info]
+  A -.->|Config/API URL| B
 ```
 
 ---

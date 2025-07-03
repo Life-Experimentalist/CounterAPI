@@ -24,9 +24,10 @@ RENDER_GIT_BRANCH = os.getenv("RENDER_GIT_BRANCH", "main")
 app = FastAPI()
 
 # Enable CORS for all origins
+CORS_ALLOW_ORIGINS = ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ALLOW_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -258,6 +259,6 @@ def meta_info(request: Request):
         "git_branch": RENDER_GIT_BRANCH,
         "git_commit": RENDER_GIT_COMMIT,
         "wiki_url": WIKI_URL,
-        "cors_allow_origins": request.app.middleware[0].options.get("allow_origins"),
+        "cors_allow_origins": CORS_ALLOW_ORIGINS,
     }
     return {"deployment": deployment_info, "database": db_info}
