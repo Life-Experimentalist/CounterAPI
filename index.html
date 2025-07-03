@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CounterAPI Dashboard</title>
+  <link rel="icon" type="image/png" href="icon.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -400,6 +401,9 @@
         margin: 0.25rem 0;
       }
     }
+
+    .fade-in { opacity: 1; transition: opacity 0.3s; }
+    .fade-out { opacity: 0; transition: opacity 0.3s; }
   </style>
 </head>
 
@@ -618,20 +622,24 @@
     }
 
     function renderProjects(projects) {
-      projectContainer.innerHTML = '';
+      projectContainer.classList.remove('fade-in');
+      projectContainer.classList.add('fade-out');
+      setTimeout(() => {
+        projectContainer.innerHTML = '';
 
-      if (projects.length === 0) {
-        emptyState.style.display = 'block';
-        return;
-      }
-
-      emptyState.style.display = 'none';
-
-      projects.forEach((project, index) => {
-        setTimeout(() => {
-          createProjectTile(project);
-        }, index * 100);
-      });
+        if (projects.length === 0) {
+          emptyState.style.display = 'block';
+        } else {
+          emptyState.style.display = 'none';
+          projects.forEach((project, index) => {
+            setTimeout(() => {
+              createProjectTile(project);
+            }, index * 100);
+          });
+        }
+        projectContainer.classList.remove('fade-out');
+        projectContainer.classList.add('fade-in');
+      }, 200);
     }
 
     function createProjectTile(project) {
@@ -679,9 +687,21 @@
       const totalVisits = projects.reduce((sum, project) => sum + project.count, 0);
       const avgVisits = totalProjects > 0 ? Math.round(totalVisits / totalProjects) : 0;
 
-      document.getElementById('total-projects').textContent = totalProjects;
-      document.getElementById('total-visits').textContent = totalVisits.toLocaleString();
-      document.getElementById('avg-visits').textContent = avgVisits.toLocaleString();
+      const totalProjectsElem = document.getElementById('total-projects');
+      const totalVisitsElem = document.getElementById('total-visits');
+      const avgVisitsElem = document.getElementById('avg-visits');
+      [totalProjectsElem, totalVisitsElem, avgVisitsElem].forEach(el => {
+        el.classList.add('fade-out');
+      });
+      setTimeout(() => {
+        totalProjectsElem.textContent = totalProjects;
+        totalVisitsElem.textContent = totalVisits.toLocaleString();
+        avgVisitsElem.textContent = avgVisits.toLocaleString();
+        [totalProjectsElem, totalVisitsElem, avgVisitsElem].forEach(el => {
+          el.classList.remove('fade-out');
+          el.classList.add('fade-in');
+        });
+      }, 200);
     }
 
     async function addProject() {
@@ -713,7 +733,8 @@
         nameInput.value = '';
         descInput.value = '';
         showToast('successToast', `Project "${name}" added successfully!`);
-        loadProjects();
+        // Seamless reload: update only the project tiles and stats
+        await loadProjects();
       } catch (error) {
         showToast('errorToast', error.message);
       } finally {
@@ -724,18 +745,26 @@
 
     async function pingProject(name) {
       try {
-        const response = await fetch(`${apiBase}/ping`, {
+        const response = await fetch(`${apiBase}/projects/ping`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name })
         });
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+          let errorMsg = `HTTP ${response.status}`;
+          try {
+            const error = await response.json();
+            errorMsg = error.detail || errorMsg;
+          } catch {}
+          throw new Error(errorMsg);
+        }
 
         showToast('successToast', `Pinged "${name}" successfully!`);
-        loadProjects();
+        // Seamless reload: update only the project tile and stats
+        await loadProjects();
       } catch (error) {
-        showToast('errorToast', `Failed to ping "${name}"`);
+        showToast('errorToast', `Failed to ping "${name}": ${error.message}`);
       }
     }
 
@@ -842,4 +871,7 @@
     }
   </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

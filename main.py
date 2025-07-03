@@ -182,9 +182,17 @@ def ping_project(proj: ProjectPing):
     db = get_db()
     cursor = db.cursor()
     try:
+        # Ensure project exists before updating
+        cursor.execute("SELECT name FROM projects WHERE name = %s", (proj.name,))
+        if cursor.fetchone() is None:
+            cursor.close()
+            db.close()
+            raise HTTPException(
+                status_code=404, detail=f"Project '{proj.name}' not found"
+            )
         cursor.execute(
-            "UPDATE projects SET count = count + 1 WHERE name = %s RETURNING name, count",  # Use %s, RETURNING is useful
-            (proj.name,),  # Note the comma for tuple
+            "UPDATE projects SET count = count + 1 WHERE name = %s RETURNING name, count",
+            (proj.name,),
         )
         result = cursor.fetchone()
         db.commit()
@@ -193,9 +201,9 @@ def ping_project(proj: ProjectPing):
 
         if result is None:
             raise HTTPException(
-                status_code=404, detail=f"Project '{proj.name}' not found"
+                status_code=404,
+                detail=f"Project '{proj.name}' not found or update failed",
             )
-
         name, count = result
         return {"name": name, "count": count}
 
