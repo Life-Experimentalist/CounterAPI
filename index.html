@@ -1,657 +1,751 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CounterAPI Dashboard</title>
-  <link rel="icon" type="image/png" href="icon.png">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-      --danger-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-      --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-      --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      --card-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
-      --border-radius: 16px;
-      --glass-bg: rgba(255, 255, 255, 0.25);
-      --glass-border: rgba(255, 255, 255, 0.18);
-    }
-
-    * {
-      font-family: 'Inter', sans-serif;
-    }
-
-    body {
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      min-height: 100vh;
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background:
-        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: -1;
-    }
-
-    .navbar {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-
-    .navbar-brand {
-      font-weight: 700;
-      font-size: 1.5rem;
-      background: var(--primary-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .glass-card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--border-radius);
-      box-shadow: var(--card-shadow);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .glass-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--primary-gradient);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-
-    .glass-card:hover {
-      transform: translateY(-8px);
-      box-shadow: var(--card-shadow-hover);
-    }
-
-    .glass-card:hover::before {
-      transform: scaleX(1);
-    }
-
-    .project-card {
-      position: relative;
-      min-height: 280px;
-    }
-
-    .project-card .card-body {
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    .project-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .project-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 16px;
-      background: var(--primary-gradient);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 1.5rem;
-      color: white;
-      font-size: 1.4rem;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    }
-
-    .project-title {
-      font-weight: 600;
-      font-size: 1.35rem;
-      color: #2d3748;
-      margin: 0;
-      line-height: 1.3;
-    }
-
-    .project-description {
-      color: #718096;
-      font-size: 0.95rem;
-      margin-bottom: 1.5rem;
-      line-height: 1.6;
-      flex-grow: 1;
-      min-height: 1.5rem;
-    }
-
-    .count-display {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 1rem 1.5rem;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 1.15rem;
-      text-align: center;
-      margin-bottom: 2rem;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .btn-modern {
-      border: none;
-      border-radius: 10px;
-      padding: 0.75rem 1.5rem;
-      font-weight: 500;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      flex: 1;
-      margin: 0.25rem;
-    }
-
-    .btn-modern::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s;
-    }
-
-    .btn-modern:hover::before {
-      left: 100%;
-    }
-
-    .btn-ping {
-      background: var(--success-gradient);
-      color: white;
-      box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
-    }
-
-    .btn-ping:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
-      color: white;
-    }
-
-    .btn-edit {
-      background: var(--warning-gradient);
-      color: white;
-      box-shadow: 0 4px 15px rgba(247, 112, 154, 0.3);
-    }
-
-    .btn-edit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(247, 112, 154, 0.4);
-      color: white;
-    }
-
-    .btn-delete {
-      background: var(--danger-gradient);
-      color: white;
-      box-shadow: 0 4px 15px rgba(255, 154, 158, 0.3);
-	  text-align: center;
-    }
-
-    .btn-delete:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255, 154, 158, 0.4);
-      color: white;
-    }
-
-    .button-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: auto;
-    }
-
-    .input-group-modern {
-      position: relative;
-      margin-bottom: 2rem;
-    }
-
-    .form-control-modern {
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: var(--border-radius);
-      padding: 1rem 1.5rem;
-      font-size: 1rem;
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      transition: all 0.3s ease;
-    }
-
-    .form-control-modern:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-      background: rgba(255, 255, 255, 0.4);
-    }
-
-    .btn-add {
-      background: var(--primary-gradient);
-      border: none;
-      border-radius: var(--border-radius);
-      padding: 1rem 2rem;
-      color: white;
-      font-weight: 600;
-      font-size: 1rem;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-      transition: all 0.3s ease;
-    }
-
-    .btn-add:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-      color: white;
-    }
-
-    .header-title {
-      font-weight: 700;
-      font-size: 2.5rem;
-      background: var(--primary-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-
-    .config-modal .modal-content {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--border-radius);
-    }
-
-    .stats-row {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-card {
-      flex: 1;
-      text-align: center;
-      padding: 1.5rem;
-    }
-
-    .stat-number {
-      font-size: 2rem;
-      font-weight: 700;
-      background: var(--primary-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .stat-label {
-      color: #718096;
-      font-size: 0.9rem;
-      margin-top: 0.5rem;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: #718096;
-    }
-
-    .empty-state i {
-      font-size: 4rem;
-      margin-bottom: 1rem;
-      opacity: 0.3;
-    }
-
-    .loading-spinner {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .fade-in {
-      animation: fadeIn 0.5s ease-in;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .pulse {
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-
-    @media (max-width: 768px) {
-      .header-title {
-        font-size: 2rem;
-      }
-
-      .stats-row {
-        flex-direction: column;
-      }
-
-      .project-card .card-body {
-        padding: 1.5rem;
-      }
-
-      .project-icon {
-        width: 50px;
-        height: 50px;
-        margin-right: 1rem;
-        font-size: 1.2rem;
-      }
-
-      .project-title {
-        font-size: 1.2rem;
-      }
-
-      .btn-modern {
-        font-size: 0.8rem;
-        padding: 0.6rem 1.2rem;
-      }
-
-      .button-group {
-        flex-direction: column;
-      }
-
-      .button-group .btn-modern {
-        margin: 0.25rem 0;
-      }
-    }
-
-    .fade-in { opacity: 1; transition: opacity 0.3s; }
-    .fade-out { opacity: 0; transition: opacity 0.3s; }
-  </style>
-</head>
-
-<body>
-  <nav class="navbar navbar-expand-lg">
-    <div class="container-fluid">
-      <a class="navbar-brand d-flex align-items-center" href="#">
-        <img src="icon.png" alt="CounterAPI" width="32" height="32" class="me-2">
-        CounterAPI
-      </a>
-      <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#configModal">
-        <i class="fas fa-cog me-2"></i>Settings
-      </button>
-    </div>
-  </nav>
-
-  <div class="container py-5">
-    <h1 class="header-title">
-      <img src="icon.png" alt="CounterAPI" width="48" height="48" class="me-3">
-      Project Analytics Dashboard
-    </h1>
-
-    <div class="stats-row">
-      <div class="glass-card stat-card">
-        <div class="stat-number" id="total-projects">0</div>
-        <div class="stat-label">Total Projects</div>
-      </div>
-      <div class="glass-card stat-card">
-        <div class="stat-number" id="total-visits">0</div>
-        <div class="stat-label">Total Visits</div>
-      </div>
-      <div class="glass-card stat-card">
-        <div class="stat-number" id="avg-visits">0</div>
-        <div class="stat-label">Avg per Project</div>
-      </div>
-    </div>
-
-    <div class="input-group-modern">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <input type="text" id="project-name-input" class="form-control form-control-modern"
-                 placeholder="Enter project name">
-        </div>
-        <div class="col-md-4">
-          <input type="text" id="project-desc-input" class="form-control form-control-modern"
-                 placeholder="Enter description (optional)">
-        </div>
-        <div class="col-md-2">
-          <button id="add-project-button" class="btn btn-add w-100">
-            <i class="fas fa-plus me-2"></i>Add Project
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div id="project-tiles-container" class="row g-4"></div>
-
-    <div id="empty-state" class="empty-state" style="display: none;">
-      <i class="fas fa-chart-bar"></i>
-      <h3>No Projects Yet</h3>
-      <p>Add your first project to start tracking usage statistics!</p>
-    </div>
-  </div>
-
-  <!-- Configuration Modal -->
-  <div class="modal fade config-modal" id="configModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header border-0">
-          <h5 class="modal-title">
-            <i class="fas fa-server me-2"></i>API Configuration
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="api-url" class="form-label">Backend API URL</label>
-            <input type="text" id="api-url" class="form-control form-control-modern"
-                   placeholder="https://your-api.onrender.com">
-            <div class="form-text">
-              <strong>Environment detected:</strong> <span id="environment-info"></span><br>
-              Change this URL to connect to a different CounterAPI backend
-            </div>
-          </div>
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-success" onclick="testConnection()">
-              <i class="fas fa-wifi me-2"></i>Test Connection
-            </button>
-            <button type="button" class="btn btn-primary" onclick="saveConfig()">
-              <i class="fas fa-save me-2"></i>Save
-            </button>
-          </div>
-          <div id="connection-status" class="mt-3"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast Container -->
-  <div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="successToast" class="toast" role="alert">
-      <div class="toast-header">
-        <i class="fas fa-check-circle text-success me-2"></i>
-        <strong class="me-auto">Success</strong>
-      </div>
-      <div class="toast-body"></div>
-    </div>
-    <div id="errorToast" class="toast" role="alert">
-      <div class="toast-header">
-        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
-        <strong class="me-auto">Error</strong>
-      </div>
-      <div class="toast-body"></div>
-    </div>
-  </div>
-
-  <script>
-    let apiBase = '';
-    const apiInput = document.getElementById('api-url');
-    const projectContainer = document.getElementById('project-tiles-container');
-    const emptyState = document.getElementById('empty-state');
-    const addButton = document.getElementById('add-project-button');
-
-    // Detect environment and initialize
-    window.addEventListener('DOMContentLoaded', () => {
-      detectEnvironmentAndInitialize();
-      setupEventListeners();
-    });
-
-    function detectEnvironmentAndInitialize() {
-      const isOnRender = window.location.hostname.includes('onrender.com') ||
-                        window.location.hostname.includes('render.com') ||
-                        (window.location.protocol === 'https:' &&
-                         !window.location.hostname.includes('github.io'));
-
-      const isGitHubPages = window.location.hostname.includes('github.io');
-
-      // Update environment info in the modal
-      const envInfo = document.getElementById('environment-info');
-      if (envInfo) {
-        if (isOnRender) {
-          envInfo.innerHTML = '<span class="badge bg-success">Render (Auto-configured)</span>';
-        } else if (isGitHubPages) {
-          envInfo.innerHTML = '<span class="badge bg-info">GitHub Pages (Manual config)</span>';
-        } else {
-          envInfo.innerHTML = '<span class="badge bg-warning">Static Host (Manual config)</span>';
-        }
-      }
-
-      // Always ask for URL on first run, regardless of environment
-      initializeAPIFromStorage();
-    }
-
-    function initializeAPIFromStorage() {
-      apiBase = localStorage.getItem('apiBase');
-      if (!apiBase) {
-        // Show configuration prompt for first-time users
-        const userInput = prompt(
-          `Welcome to CounterAPI Dashboard!\n\n` +
-          `Please enter your CounterAPI backend URL to get started.\n\n` +
-          `Examples:\n` +
-          `• https://your-api.onrender.com\n` +
-          `• https://projectcounter.onrender.com (demo)\n` +
-          `• http://localhost:8000 (local development)\n\n` +
-          `Enter your API URL:`
-        );
-
-        if (!userInput || !userInput.trim()) {
-          showToast('errorToast', 'A valid backend URL is required to use this dashboard.');
-          // Show the configuration modal if user cancels
-          setTimeout(() => {
-            const configModal = new bootstrap.Modal(document.getElementById('configModal'));
-            configModal.show();
-          }, 1000);
-          return;
-        }
-
-        apiBase = userInput.trim();
-        // Remove trailing slash if present
-        if (apiBase.endsWith('/')) {
-          apiBase = apiBase.slice(0, -1);
-        }
-
-        localStorage.setItem('apiBase', apiBase);
-        showToast('successToast', 'API URL configured successfully!');
-      }
-
-      apiInput.value = apiBase;
-      loadProjects();
-    }
-
-    function setupEventListeners() {
-      document.getElementById('add-project-button').addEventListener('click', addProject);
-      document.getElementById('project-name-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addProject();
-      });
-      document.getElementById('project-desc-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addProject();
-      });
-    }
-
-    async function loadProjects() {
-      if (!apiBase) return;
-
-      try {
-        const response = await fetch(`${apiBase}/projects`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const projects = await response.json();
-        renderProjects(projects);
-        updateStats(projects);
-      } catch (error) {
-        console.error('Failed to load projects:', error);
-        showToast('errorToast', 'Failed to load projects. Check your API URL in Settings.');
-      }
-    }
-
-    function renderProjects(projects) {
-      projectContainer.classList.remove('fade-in');
-      projectContainer.classList.add('fade-out');
-      setTimeout(() => {
-        projectContainer.innerHTML = '';
-
-        if (projects.length === 0) {
-          emptyState.style.display = 'block';
-        } else {
-          emptyState.style.display = 'none';
-          projects.forEach((project, index) => {
-            setTimeout(() => {
-              createProjectTile(project);
-            }, index * 100);
-          });
-        }
-        projectContainer.classList.remove('fade-out');
-        projectContainer.classList.add('fade-in');
-      }, 200);
-    }
-
-    function createProjectTile(project) {
-      const { name, description, count } = project;
-      const col = document.createElement('div');
-      col.className = 'col-lg-4 col-md-6 fade-in';
-
-      const iconOptions = ['fas fa-rocket', 'fas fa-code', 'fas fa-globe', 'fas fa-mobile-alt',
-                          'fas fa-desktop', 'fas fa-database', 'fas fa-cloud', 'fas fa-cogs'];
-      const randomIcon = iconOptions[Math.floor(Math.random() * iconOptions.length)];
-
-      col.innerHTML = `
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>CounterAPI Dashboard</title>
+		<link rel="icon" type="image/png" href="icon.png" />
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet" />
+		<style>
+			:root {
+				--primary-gradient: linear-gradient(135deg,
+						#667eea 0%,
+						#764ba2 100%);
+				--success-gradient: linear-gradient(135deg,
+						#4facfe 0%,
+						#00f2fe 100%);
+				--warning-gradient: linear-gradient(135deg,
+						#fa709a 0%,
+						#fee140 100%);
+				--danger-gradient: linear-gradient(135deg,
+						#ff9a9e 0%,
+						#fecfef 100%);
+				--dark-gradient: linear-gradient(135deg,
+						#2c3e50 0%,
+						#34495e 100%);
+				--card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+				--card-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
+				--border-radius: 16px;
+				--glass-bg: rgba(255, 255, 255, 0.25);
+				--glass-border: rgba(255, 255, 255, 0.18);
+			}
+
+			* {
+				font-family: "Inter", sans-serif;
+			}
+
+			body {
+				background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+				min-height: 100vh;
+				position: relative;
+				overflow-x: hidden;
+			}
+
+			body::before {
+				content: "";
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: radial-gradient(circle at 20% 80%,
+						rgba(120, 119, 198, 0.3) 0%,
+						transparent 50%),
+					radial-gradient(circle at 80% 20%,
+						rgba(255, 119, 198, 0.3) 0%,
+						transparent 50%),
+					radial-gradient(circle at 40% 40%,
+						rgba(120, 219, 255, 0.2) 0%,
+						transparent 50%);
+				pointer-events: none;
+				z-index: -1;
+			}
+
+			.navbar {
+				background: var(--glass-bg);
+				backdrop-filter: blur(20px);
+				border: 1px solid var(--glass-border);
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+			}
+
+			.navbar-brand {
+				font-weight: 700;
+				font-size: 1.5rem;
+				background: var(--primary-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				background-clip: text;
+			}
+
+			.glass-card {
+				background: var(--glass-bg);
+				backdrop-filter: blur(20px);
+				border: 1px solid var(--glass-border);
+				border-radius: var(--border-radius);
+				box-shadow: var(--card-shadow);
+				transition: all 0.3s ease;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.glass-card::before {
+				content: "";
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				height: 3px;
+				background: var(--primary-gradient);
+				transform: scaleX(0);
+				transition: transform 0.3s ease;
+			}
+
+			.glass-card:hover {
+				transform: translateY(-8px);
+				box-shadow: var(--card-shadow-hover);
+			}
+
+			.glass-card:hover::before {
+				transform: scaleX(1);
+			}
+
+			.project-card {
+				position: relative;
+				min-height: 280px;
+			}
+
+			.project-card .card-body {
+				padding: 2rem;
+				display: flex;
+				flex-direction: column;
+				height: 100%;
+			}
+
+			.project-header {
+				display: flex;
+				align-items: center;
+				margin-bottom: 1.5rem;
+			}
+
+			.project-icon {
+				width: 60px;
+				height: 60px;
+				border-radius: 16px;
+				background: var(--primary-gradient);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin-right: 1.5rem;
+				color: white;
+				font-size: 1.4rem;
+				box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+			}
+
+			.project-title {
+				font-weight: 600;
+				font-size: 1.35rem;
+				color: #2d3748;
+				margin: 0;
+				line-height: 1.3;
+			}
+
+			.project-description {
+				color: #718096;
+				font-size: 0.95rem;
+				margin-bottom: 1.5rem;
+				line-height: 1.6;
+				flex-grow: 1;
+				min-height: 1.5rem;
+			}
+
+			.count-display {
+				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+				color: white;
+				padding: 1rem 1.5rem;
+				border-radius: 12px;
+				font-weight: 600;
+				font-size: 1.15rem;
+				text-align: center;
+				margin-bottom: 2rem;
+				box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.btn-modern {
+				border: none;
+				border-radius: 10px;
+				padding: 0.75rem 1.5rem;
+				font-weight: 500;
+				font-size: 0.9rem;
+				transition: all 0.3s ease;
+				position: relative;
+				overflow: hidden;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+				flex: 1;
+				margin: 0.25rem;
+			}
+
+			.btn-modern::before {
+				content: "";
+				position: absolute;
+				top: 0;
+				left: -100%;
+				width: 100%;
+				height: 100%;
+				background: linear-gradient(90deg,
+						transparent,
+						rgba(255, 255, 255, 0.2),
+						transparent);
+				transition: left 0.5s;
+			}
+
+			.btn-modern:hover::before {
+				left: 100%;
+			}
+
+			.btn-ping {
+				background: var(--success-gradient);
+				color: white;
+				box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+			}
+
+			.btn-ping:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+				color: white;
+			}
+
+			.btn-edit {
+				background: var(--warning-gradient);
+				color: white;
+				box-shadow: 0 4px 15px rgba(247, 112, 154, 0.3);
+			}
+
+			.btn-edit:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 6px 20px rgba(247, 112, 154, 0.4);
+				color: white;
+			}
+
+			.btn-delete {
+				background: var(--danger-gradient);
+				color: white;
+				box-shadow: 0 4px 15px rgba(255, 154, 158, 0.3);
+				text-align: center;
+			}
+
+			.btn-delete:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 6px 20px rgba(255, 154, 158, 0.4);
+				color: white;
+			}
+
+			.button-group {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5rem;
+				margin-top: auto;
+			}
+
+			.input-group-modern {
+				position: relative;
+				margin-bottom: 2rem;
+			}
+
+			.form-control-modern {
+				border: 2px solid rgba(255, 255, 255, 0.3);
+				border-radius: var(--border-radius);
+				padding: 1rem 1.5rem;
+				font-size: 1rem;
+				background: var(--glass-bg);
+				backdrop-filter: blur(20px);
+				transition: all 0.3s ease;
+			}
+
+			.form-control-modern:focus {
+				border-color: #667eea;
+				box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+				background: rgba(255, 255, 255, 0.4);
+			}
+
+			.btn-add {
+				background: var(--primary-gradient);
+				border: none;
+				border-radius: var(--border-radius);
+				padding: 1rem 2rem;
+				color: white;
+				font-weight: 600;
+				font-size: 1rem;
+				box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+				transition: all 0.3s ease;
+			}
+
+			.btn-add:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+				color: white;
+			}
+
+			.header-title {
+				font-weight: 700;
+				font-size: 2.5rem;
+				background: var(--primary-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				background-clip: text;
+				margin-bottom: 2rem;
+				text-align: center;
+			}
+
+			.config-modal .modal-content {
+				background: var(--glass-bg);
+				backdrop-filter: blur(20px);
+				border: 1px solid var(--glass-border);
+				border-radius: var(--border-radius);
+			}
+
+			.stats-row {
+				display: flex;
+				gap: 1rem;
+				margin-bottom: 2rem;
+			}
+
+			.stat-card {
+				flex: 1;
+				text-align: center;
+				padding: 1.5rem;
+			}
+
+			.stat-number {
+				font-size: 2rem;
+				font-weight: 700;
+				background: var(--primary-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				background-clip: text;
+			}
+
+			.stat-label {
+				color: #718096;
+				font-size: 0.9rem;
+				margin-top: 0.5rem;
+			}
+
+			.empty-state {
+				text-align: center;
+				padding: 4rem 2rem;
+				color: #718096;
+			}
+
+			.empty-state i {
+				font-size: 4rem;
+				margin-bottom: 1rem;
+				opacity: 0.3;
+			}
+
+			.loading-spinner {
+				display: inline-block;
+				width: 20px;
+				height: 20px;
+				border: 3px solid rgba(255, 255, 255, 0.3);
+				border-radius: 50%;
+				border-top-color: #fff;
+				animation: spin 1s ease-in-out infinite;
+			}
+
+			@keyframes spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
+
+			.fade-in {
+				animation: fadeIn 0.5s ease-in;
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(20px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			.pulse {
+				animation: pulse 2s infinite;
+			}
+
+			@keyframes pulse {
+				0% {
+					transform: scale(1);
+				}
+
+				50% {
+					transform: scale(1.05);
+				}
+
+				100% {
+					transform: scale(1);
+				}
+			}
+
+			@media (max-width: 768px) {
+				.header-title {
+					font-size: 2rem;
+				}
+
+				.stats-row {
+					flex-direction: column;
+				}
+
+				.project-card .card-body {
+					padding: 1.5rem;
+				}
+
+				.project-icon {
+					width: 50px;
+					height: 50px;
+					margin-right: 1rem;
+					font-size: 1.2rem;
+				}
+
+				.project-title {
+					font-size: 1.2rem;
+				}
+
+				.btn-modern {
+					font-size: 0.8rem;
+					padding: 0.6rem 1.2rem;
+				}
+
+				.button-group {
+					flex-direction: column;
+				}
+
+				.button-group .btn-modern {
+					margin: 0.25rem 0;
+				}
+			}
+
+			.fade-in {
+				opacity: 1;
+				transition: opacity 0.3s;
+			}
+
+			.fade-out {
+				opacity: 0;
+				transition: opacity 0.3s;
+			}
+		</style>
+	</head>
+
+	<body>
+		<nav class="navbar navbar-expand-lg">
+			<div class="container-fluid">
+				<a class="navbar-brand d-flex align-items-center" href="#">
+					<img src="icon.png" alt="CounterAPI" width="32" height="32" class="me-2" />
+					CounterAPI
+				</a>
+				<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#configModal">
+					<i class="fas fa-cog me-2"></i>Settings
+				</button>
+			</div>
+		</nav>
+
+		<div class="container py-5">
+			<h1 class="header-title">
+				<img src="icon.png" alt="CounterAPI" width="48" height="48" class="me-3" />
+				Project Analytics Dashboard
+			</h1>
+
+			<div class="stats-row">
+				<div class="glass-card stat-card">
+					<div class="stat-number" id="total-projects">0</div>
+					<div class="stat-label">Total Projects</div>
+				</div>
+				<div class="glass-card stat-card">
+					<div class="stat-number" id="total-visits">0</div>
+					<div class="stat-label">Total Visits</div>
+				</div>
+				<div class="glass-card stat-card">
+					<div class="stat-number" id="avg-visits">0</div>
+					<div class="stat-label">Avg per Project</div>
+				</div>
+			</div>
+
+			<div class="input-group-modern">
+				<div class="row g-3">
+					<div class="col-md-6">
+						<input type="text" id="project-name-input" class="form-control form-control-modern"
+							placeholder="Enter project name" />
+					</div>
+					<div class="col-md-4">
+						<input type="text" id="project-desc-input" class="form-control form-control-modern"
+							placeholder="Enter description (optional)" />
+					</div>
+					<div class="col-md-2">
+						<button id="add-project-button" class="btn btn-add w-100">
+							<i class="fas fa-plus me-2"></i>Add Project
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<div id="project-tiles-container" class="row g-4"></div>
+
+			<div id="empty-state" class="empty-state" style="display: none">
+				<i class="fas fa-chart-bar"></i>
+				<h3>No Projects Yet</h3>
+				<p>
+					Add your first project to start tracking usage statistics!
+				</p>
+			</div>
+		</div>
+
+		<!-- Configuration Modal -->
+		<div class="modal fade config-modal" id="configModal" tabindex="-1">
+			<div class="modal-dialog modal-dialog-centered modal-lg">
+				<div class="modal-content">
+					<div class="modal-header border-0">
+						<h5 class="modal-title">
+							<i class="fas fa-server me-2"></i>API Configuration
+							& Info
+						</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+					</div>
+					<div class="modal-body">
+						<div class="mb-3">
+							<label for="api-url" class="form-label">Backend API URL</label>
+							<input type="text" id="api-url" class="form-control form-control-modern"
+								placeholder="https://your-api.onrender.com" />
+							<div class="form-text">
+								<strong>Environment detected:</strong>
+								<span id="environment-info"></span><br />
+								Change this URL to connect to a different
+								CounterAPI backend
+							</div>
+						</div>
+						<div class="d-flex gap-2 mb-4">
+							<button type="button" class="btn btn-success" onclick="testConnection()">
+								<i class="fas fa-wifi me-2"></i>Test Connection
+							</button>
+							<button type="button" class="btn btn-primary" onclick="saveConfig()">
+								<i class="fas fa-save me-2"></i>Save
+							</button>
+						</div>
+						<div id="connection-status" class="mb-4"></div>
+						<hr />
+						<h6 class="mb-3">
+							<i class="fas fa-info-circle me-2"></i>Deployment &
+							Database Info
+						</h6>
+						<div id="meta-info-body">
+							<div class="d-flex justify-content-center align-items-center" style="height: 120px">
+								<div class="spinner-border text-primary" role="status">
+									<span class="visually-hidden">Loading...</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Toast Container -->
+		<div class="toast-container position-fixed bottom-0 end-0 p-3">
+			<div id="successToast" class="toast" role="alert">
+				<div class="toast-header">
+					<i class="fas fa-check-circle text-success me-2"></i>
+					<strong class="me-auto">Success</strong>
+				</div>
+				<div class="toast-body"></div>
+			</div>
+			<div id="errorToast" class="toast" role="alert">
+				<div class="toast-header">
+					<i class="fas fa-exclamation-triangle text-danger me-2"></i>
+					<strong class="me-auto">Error</strong>
+				</div>
+				<div class="toast-body"></div>
+			</div>
+		</div>
+
+		<script>
+			let apiBase = "";
+			const apiInput = document.getElementById("api-url");
+			const projectContainer = document.getElementById(
+				"project-tiles-container"
+			);
+			const emptyState = document.getElementById("empty-state");
+			const addButton = document.getElementById("add-project-button");
+
+			// Detect environment and initialize
+			window.addEventListener("DOMContentLoaded", () => {
+				detectEnvironmentAndInitialize();
+				setupEventListeners();
+			});
+
+			function detectEnvironmentAndInitialize() {
+				const isOnRender =
+					window.location.hostname.includes("onrender.com") ||
+					window.location.hostname.includes("render.com") ||
+					(window.location.protocol === "https:" &&
+						!window.location.hostname.includes("github.io"));
+
+				const isGitHubPages =
+					window.location.hostname.includes("github.io");
+
+				// Update environment info in the modal
+				const envInfo = document.getElementById("environment-info");
+				if (envInfo) {
+					if (isOnRender) {
+						envInfo.innerHTML =
+							'<span class="badge bg-success">Render (Auto-configured)</span>';
+					} else if (isGitHubPages) {
+						envInfo.innerHTML =
+							'<span class="badge bg-info">GitHub Pages (Manual config)</span>';
+					} else {
+						envInfo.innerHTML =
+							'<span class="badge bg-warning">Static Host (Manual config)</span>';
+					}
+				}
+
+				// Always ask for URL on first run, regardless of environment
+				initializeAPIFromStorage();
+			}
+
+			function initializeAPIFromStorage() {
+				apiBase = localStorage.getItem("apiBase");
+				if (!apiBase) {
+					// Show configuration prompt for first-time users
+					const userInput = prompt(
+						`Welcome to CounterAPI Dashboard!\n\n` +
+						`Please enter your CounterAPI backend URL to get started.\n\n` +
+						`Examples:\n` +
+						`• https://your-api.onrender.com\n` +
+						`• https://projectcounter.onrender.com (demo)\n` +
+						`• http://localhost:8000 (local development)\n\n` +
+						`Enter your API URL:`
+					);
+
+					if (!userInput || !userInput.trim()) {
+						showToast(
+							"errorToast",
+							"A valid backend URL is required to use this dashboard."
+						);
+						// Show the configuration modal if user cancels
+						setTimeout(() => {
+							const configModal = new bootstrap.Modal(
+								document.getElementById("configModal")
+							);
+							configModal.show();
+						}, 1000);
+						return;
+					}
+
+					apiBase = userInput.trim();
+					// Remove trailing slash if present
+					if (apiBase.endsWith("/")) {
+						apiBase = apiBase.slice(0, -1);
+					}
+
+					localStorage.setItem("apiBase", apiBase);
+					showToast(
+						"successToast",
+						"API URL configured successfully!"
+					);
+				}
+
+				apiInput.value = apiBase;
+				loadProjects();
+			}
+
+			function setupEventListeners() {
+				document
+					.getElementById("add-project-button")
+					.addEventListener("click", addProject);
+				document
+					.getElementById("project-name-input")
+					.addEventListener("keypress", (e) => {
+						if (e.key === "Enter") addProject();
+					});
+				document
+					.getElementById("project-desc-input")
+					.addEventListener("keypress", (e) => {
+						if (e.key === "Enter") addProject();
+					});
+			}
+
+			async function loadProjects() {
+				if (!apiBase) return;
+
+				try {
+					const response = await fetch(`${apiBase}/projects`);
+					if (!response.ok)
+						throw new Error(`HTTP ${response.status}`);
+
+					const projects = await response.json();
+					renderProjects(projects);
+					updateStats(projects);
+				} catch (error) {
+					console.error("Failed to load projects:", error);
+					showToast(
+						"errorToast",
+						"Failed to load projects. Check your API URL in Settings."
+					);
+				}
+			}
+
+			function renderProjects(projects) {
+				projectContainer.classList.remove("fade-in");
+				projectContainer.classList.add("fade-out");
+				setTimeout(() => {
+					projectContainer.innerHTML = "";
+
+					if (projects.length === 0) {
+						emptyState.style.display = "block";
+					} else {
+						emptyState.style.display = "none";
+						projects.forEach((project, index) => {
+							setTimeout(() => {
+								createProjectTile(project);
+							}, index * 100);
+						});
+					}
+					projectContainer.classList.remove("fade-out");
+					projectContainer.classList.add("fade-in");
+				}, 200);
+			}
+
+			function createProjectTile(project) {
+				const { name, description, count } = project;
+				const col = document.createElement("div");
+				col.className = "col-lg-4 col-md-6 fade-in";
+
+				const iconOptions = [
+					"fas fa-rocket",
+					"fas fa-code",
+					"fas fa-globe",
+					"fas fa-mobile-alt",
+					"fas fa-desktop",
+					"fas fa-database",
+					"fas fa-cloud",
+					"fas fa-cogs",
+				];
+				const randomIcon =
+					iconOptions[Math.floor(Math.random() * iconOptions.length)];
+
+				col.innerHTML = `
         <div class="glass-card project-card">
           <div class="card-body">
             <div class="project-header">
@@ -660,18 +754,29 @@
               </div>
               <h5 class="project-title">${escapeHtml(name)}</h5>
             </div>
-            ${description ? `<p class="project-description">${escapeHtml(description)}</p>` : '<p class="project-description">No description provided</p>'}
+            ${description
+						? `<p class="project-description">${escapeHtml(
+							description
+						)}</p>`
+						: '<p class="project-description">No description provided</p>'
+					}
             <div class="count-display">
               <i class="fas fa-eye me-2"></i>${count.toLocaleString()} visits
             </div>
             <div class="button-group">
-              <button class="btn btn-modern btn-ping" onclick="pingProject('${escapeHtml(name)}')">
+              <button class="btn btn-modern btn-ping" onclick="pingProject('${escapeHtml(
+						name
+					)}')">
                 <i class="fas fa-mouse-pointer me-1"></i>Ping
               </button>
-              <button class="btn btn-modern btn-edit" onclick="editProject('${escapeHtml(name)}')">
+              <button class="btn btn-modern btn-edit" onclick="editProject('${escapeHtml(
+						name
+					)}')">
                 <i class="fas fa-edit me-1"></i>Edit
               </button>
-              <button class="btn btn-modern btn-delete" text-align="center" onclick="deleteProject('${escapeHtml(name)}')">
+              <button class="btn btn-modern btn-delete" text-align="center" onclick="deleteProject('${escapeHtml(
+						name
+					)}')">
                 <i class="fas fa-trash me-1"></i>Delete
               </button>
             </div>
@@ -679,199 +784,306 @@
         </div>
       `;
 
-      projectContainer.appendChild(col);
-    }
+				projectContainer.appendChild(col);
+			}
 
-    function updateStats(projects) {
-      const totalProjects = projects.length;
-      const totalVisits = projects.reduce((sum, project) => sum + project.count, 0);
-      const avgVisits = totalProjects > 0 ? Math.round(totalVisits / totalProjects) : 0;
+			function updateStats(projects) {
+				const totalProjects = projects.length;
+				const totalVisits = projects.reduce(
+					(sum, project) => sum + project.count,
+					0
+				);
+				const avgVisits =
+					totalProjects > 0
+						? Math.round(totalVisits / totalProjects)
+						: 0;
 
-      const totalProjectsElem = document.getElementById('total-projects');
-      const totalVisitsElem = document.getElementById('total-visits');
-      const avgVisitsElem = document.getElementById('avg-visits');
-      [totalProjectsElem, totalVisitsElem, avgVisitsElem].forEach(el => {
-        el.classList.add('fade-out');
-      });
-      setTimeout(() => {
-        totalProjectsElem.textContent = totalProjects;
-        totalVisitsElem.textContent = totalVisits.toLocaleString();
-        avgVisitsElem.textContent = avgVisits.toLocaleString();
-        [totalProjectsElem, totalVisitsElem, avgVisitsElem].forEach(el => {
-          el.classList.remove('fade-out');
-          el.classList.add('fade-in');
-        });
-      }, 200);
-    }
+				const totalProjectsElem =
+					document.getElementById("total-projects");
+				const totalVisitsElem = document.getElementById("total-visits");
+				const avgVisitsElem = document.getElementById("avg-visits");
+				[totalProjectsElem, totalVisitsElem, avgVisitsElem].forEach(
+					(el) => {
+						el.classList.add("fade-out");
+					}
+				);
+				setTimeout(() => {
+					totalProjectsElem.textContent = totalProjects;
+					totalVisitsElem.textContent = totalVisits.toLocaleString();
+					avgVisitsElem.textContent = avgVisits.toLocaleString();
+					[totalProjectsElem, totalVisitsElem, avgVisitsElem].forEach(
+						(el) => {
+							el.classList.remove("fade-out");
+							el.classList.add("fade-in");
+						}
+					);
+				}, 200);
+			}
 
-    async function addProject() {
-      const nameInput = document.getElementById('project-name-input');
-      const descInput = document.getElementById('project-desc-input');
-      const name = nameInput.value.trim();
-      const description = descInput.value.trim();
+			async function addProject() {
+				const nameInput = document.getElementById("project-name-input");
+				const descInput = document.getElementById("project-desc-input");
+				const name = nameInput.value.trim();
+				const description = descInput.value.trim();
 
-      if (!name) {
-        showToast('errorToast', 'Please enter a project name');
-        return;
-      }
+				if (!name) {
+					showToast("errorToast", "Please enter a project name");
+					return;
+				}
 
-      addButton.innerHTML = '<span class="loading-spinner me-2"></span>Adding...';
-      addButton.disabled = true;
+				addButton.innerHTML =
+					'<span class="loading-spinner me-2"></span>Adding...';
+				addButton.disabled = true;
 
-      try {
-        const response = await fetch(`${apiBase}/projects`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, description })
-        });
+				try {
+					const response = await fetch(`${apiBase}/projects`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ name, description }),
+					});
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.detail || `HTTP ${response.status}`);
-        }
+					if (!response.ok) {
+						const error = await response.json();
+						throw new Error(
+							error.detail || `HTTP ${response.status}`
+						);
+					}
 
-        nameInput.value = '';
-        descInput.value = '';
-        showToast('successToast', `Project "${name}" added successfully!`);
-        // Seamless reload: update only the project tiles and stats
-        await loadProjects();
-      } catch (error) {
-        showToast('errorToast', error.message);
-      } finally {
-        addButton.innerHTML = '<i class="fas fa-plus me-2"></i>Add Project';
-        addButton.disabled = false;
-      }
-    }
+					nameInput.value = "";
+					descInput.value = "";
+					showToast(
+						"successToast",
+						`Project "${name}" added successfully!`
+					);
+					// Seamless reload: update only the project tiles and stats
+					scheduleProjectsReload();
+				} catch (error) {
+					showToast("errorToast", error.message);
+				} finally {
+					addButton.innerHTML =
+						'<i class="fas fa-plus me-2"></i>Add Project';
+					addButton.disabled = false;
+				}
+			}
 
-    async function pingProject(name) {
-      try {
-        const response = await fetch(`${apiBase}/projects/ping`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name })
-        });
+			async function pingProject(name) {
+				try {
+					const response = await fetch(`${apiBase}/projects/ping`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ name }),
+					});
 
-        if (!response.ok) {
-          let errorMsg = `HTTP ${response.status}`;
-          try {
-            const error = await response.json();
-            errorMsg = error.detail || errorMsg;
-          } catch {}
-          throw new Error(errorMsg);
-        }
+					if (!response.ok) {
+						let errorMsg = `HTTP ${response.status}`;
+						try {
+							const error = await response.json();
+							errorMsg = error.detail || errorMsg;
+						} catch { }
+						throw new Error(errorMsg);
+					}
 
-        showToast('successToast', `Pinged "${name}" successfully!`);
-        // Seamless reload: update only the project tile and stats
-        await loadProjects();
-      } catch (error) {
-        showToast('errorToast', `Failed to ping "${name}": ${error.message}`);
-      }
-    }
+					showToast("successToast", `Pinged "${name}" successfully!`);
+					scheduleProjectsReload();
+				} catch (error) {
+					showToast(
+						"errorToast",
+						`Failed to ping "${name}": ${error.message}`
+					);
+				}
+			}
 
-    async function editProject(name) {
-      try {
-        const response = await fetch(`${apiBase}/projects`);
-        const projects = await response.json();
-        const project = projects.find(p => p.name === name);
+			async function editProject(name) {
+				try {
+					const response = await fetch(`${apiBase}/projects`);
+					const projects = await response.json();
+					const project = projects.find((p) => p.name === name);
 
-        const newName = prompt('Enter new name:', project?.name || name);
-        if (newName === null) return;
+					const newName = prompt(
+						"Enter new name:",
+						project?.name || name
+					);
+					if (newName === null) return;
 
-        const newDesc = prompt('Enter new description:', project?.description || '');
-        if (newDesc === null) return;
+					const newDesc = prompt(
+						"Enter new description:",
+						project?.description || ""
+					);
+					if (newDesc === null) return;
 
-        const updateResponse = await fetch(`${apiBase}/projects?name=${encodeURIComponent(name)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            new_name: newName.trim() || name,
-            description: newDesc.trim()
-          })
-        });
+					const updateResponse = await fetch(
+						`${apiBase}/projects?name=${encodeURIComponent(name)}`,
+						{
+							method: "PUT",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								new_name: newName.trim() || name,
+								description: newDesc.trim(),
+							}),
+						}
+					);
 
-        if (!updateResponse.ok) throw new Error(`HTTP ${updateResponse.status}`);
+					if (!updateResponse.ok)
+						throw new Error(`HTTP ${updateResponse.status}`);
 
-        showToast('successToast', `Project "${name}" updated successfully!`);
-        loadProjects();
-      } catch (error) {
-        showToast('errorToast', `Failed to update "${name}"`);
-      }
-    }
+					showToast(
+						"successToast",
+						`Project "${name}" updated successfully!`
+					);
+					scheduleProjectsReload();
+				} catch (error) {
+					showToast("errorToast", `Failed to update "${name}"`);
+				}
+			}
 
-    async function deleteProject(name) {
-      if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
-        return;
-      }
+			async function deleteProject(name) {
+				if (
+					!confirm(
+						`Are you sure you want to delete "${name}"? This action cannot be undone.`
+					)
+				) {
+					return;
+				}
 
-      try {
-        const response = await fetch(`${apiBase}/projects?name=${encodeURIComponent(name)}`, {
-          method: 'DELETE'
-        });
+				try {
+					// Use RESTful path instead of query param
+					const response = await fetch(
+						`${apiBase}/projects/${encodeURIComponent(name)}`,
+						{
+							method: "DELETE",
+						}
+					);
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+					if (!response.ok)
+						throw new Error(`HTTP ${response.status}`);
 
-        showToast('successToast', `Project "${name}" deleted successfully!`);
-        loadProjects();
-      } catch (error) {
-        showToast('errorToast', `Failed to delete "${name}"`);
-      }
-    }
+					showToast(
+						"successToast",
+						`Project "${name}" deleted successfully!`
+					);
+					scheduleProjectsReload();
+				} catch (error) {
+					showToast("errorToast", `Failed to delete "${name}"`);
+				}
+			}
 
-    async function testConnection() {
-      const url = apiInput.value.trim();
-      const statusDiv = document.getElementById('connection-status');
+			// Debounced/throttled reload for project actions
+			let reloadTimeout = null;
+			function scheduleProjectsReload() {
+				if (reloadTimeout) return; // Already scheduled
+				reloadTimeout = setTimeout(() => {
+					loadProjects();
+					reloadTimeout = null;
+				}, 5000); // 5 seconds debounce window
+			}
 
-      if (!url) {
-        statusDiv.innerHTML = '<div class="alert alert-warning">Please enter a URL</div>';
-        return;
-      }
+			async function testConnection() {
+				const url = apiInput.value.trim();
+				const statusDiv = document.getElementById("connection-status");
 
-      statusDiv.innerHTML = '<div class="alert alert-info">Testing connection...</div>';
+				if (!url) {
+					statusDiv.innerHTML =
+						'<div class="alert alert-warning">Please enter a URL</div>';
+					return;
+				}
 
-      try {
-        const response = await fetch(`${url}/projects`);
-        if (response.ok) {
-          statusDiv.innerHTML = '<div class="alert alert-success">✅ Connection successful!</div>';
-        } else {
-          throw new Error(`HTTP ${response.status}`);
-        }
-      } catch (error) {
-        statusDiv.innerHTML = `<div class="alert alert-danger">❌ Connection failed: ${error.message}</div>`;
-      }
-    }
+				statusDiv.innerHTML =
+					'<div class="alert alert-info">Testing connection...</div>';
 
-    function saveConfig() {
-      const newUrl = apiInput.value.trim();
-      if (newUrl) {
-        // Remove trailing slash if present
-        const cleanUrl = newUrl.endsWith('/') ? newUrl.slice(0, -1) : newUrl;
-        apiBase = cleanUrl;
-        localStorage.setItem('apiBase', cleanUrl);
-        showToast('successToast', 'Configuration saved successfully!');
-        loadProjects();
+				try {
+					const response = await fetch(`${url}/projects`);
+					if (response.ok) {
+						statusDiv.innerHTML =
+							'<div class="alert alert-success">✅ Connection successful!</div>';
+					} else {
+						throw new Error(`HTTP ${response.status}`);
+					}
+				} catch (error) {
+					statusDiv.innerHTML = `<div class="alert alert-danger">❌ Connection failed: ${error.message}</div>`;
+				}
+			}
 
-        const modal = bootstrap.Modal.getInstance(document.getElementById('configModal'));
-        modal.hide();
-      }
-    }
+			function saveConfig() {
+				const newUrl = apiInput.value.trim();
+				if (newUrl) {
+					// Remove trailing slash if present
+					const cleanUrl = newUrl.endsWith("/")
+						? newUrl.slice(0, -1)
+						: newUrl;
+					apiBase = cleanUrl;
+					localStorage.setItem("apiBase", cleanUrl);
+					showToast(
+						"successToast",
+						"Configuration saved successfully!"
+					);
+					loadProjects();
 
-    function showToast(toastId, message) {
-      const toast = document.getElementById(toastId);
-      const body = toast.querySelector('.toast-body');
-      body.textContent = message;
+					const modal = bootstrap.Modal.getInstance(
+						document.getElementById("configModal")
+					);
+					modal.hide();
+				}
+			}
 
-      const bsToast = new bootstrap.Toast(toast);
-      bsToast.show();
-    }
+			function showToast(toastId, message) {
+				const toast = document.getElementById(toastId);
+				const body = toast.querySelector(".toast-body");
+				body.textContent = message;
 
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-  </script>
+				const bsToast = new bootstrap.Toast(toast);
+				bsToast.show();
+			}
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+			function escapeHtml(text) {
+				const div = document.createElement("div");
+				div.textContent = text;
+				return div.innerHTML;
+			}
+
+			// Load meta info when settings modal is opened
+			document.addEventListener("DOMContentLoaded", () => {
+				const configModalEl = document.getElementById("configModal");
+				configModalEl.addEventListener("show.bs.modal", async () => {
+					const metaBody = document.getElementById("meta-info-body");
+					metaBody.innerHTML = `<div class='d-flex justify-content-center align-items-center' style='height:120px;'><div class='spinner-border text-primary' role='status'><span class='visually-hidden'>Loading...</span></div></div>`;
+					try {
+						const response = await fetch(`${apiBase}/meta`);
+						if (!response.ok)
+							throw new Error(`HTTP ${response.status}`);
+						const data = await response.json();
+						metaBody.innerHTML = renderMetaInfo(data);
+					} catch (e) {
+						metaBody.innerHTML = `<div class='alert alert-danger'>Failed to load info: ${e.message}</div>`;
+					}
+				});
+			});
+			function renderMetaInfo(data) {
+				let html = `<h6 class='mb-3'>Deployment</h6><ul class='list-group mb-4'>`;
+				for (const [k, v] of Object.entries(data.deployment)) {
+					html += `<li class='list-group-item d-flex justify-content-between align-items-center'><span>${k.replace(
+						/_/g,
+						" "
+					)}:</span><span class='fw-bold'>${v}</span></li>`;
+				}
+				html += `</ul><h6 class='mb-3'>Database</h6><ul class='list-group mb-2'>`;
+				for (const [table, info] of Object.entries(
+					data.database.tables
+				)) {
+					html += `<li class='list-group-item'><strong>${table}</strong> (${info.row_count
+						} rows)<br><small>Columns: ${info.columns
+							.map(
+								(c) =>
+									`${c.name} <span class='text-muted'>[${c.type}]</span>`
+							)
+							.join(", ")}</small></li>`;
+				}
+				html += `</ul>`;
+				html += `<div class='mt-3'><span class='text-muted'>DB Host:</span> <code>${data.database.db_host}</code> | <span class='text-muted'>DB Name:</span> <code>${data.database.db_name}</code> | <span class='text-muted'>User:</span> <code>${data.database.db_user}</code></div>`;
+				return html;
+			}
+		</script>
+
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+	</body>
 
 </html>

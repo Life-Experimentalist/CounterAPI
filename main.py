@@ -214,24 +214,9 @@ def ping_project(proj: ProjectPing):
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
 
-# Endpoint to get deployment info
-@app.get("/info")
-def get_info(request: Request):
-    return {
-        "service_name": RENDER_SERVICE_NAME,
-        "service_id": RENDER_SERVICE_ID,
-        "external_url": RENDER_EXTERNAL_URL,
-        "git_branch": RENDER_GIT_BRANCH,
-        "git_commit": RENDER_GIT_COMMIT,
-        "wiki_url": WIKI_URL,
-        "cors_allow_origins": request.app.middleware[0].options.get(
-            "allow_origins"
-        ),  # Access CORS config
-    }
-
-
+# Endpoint to get deployment and database info
 @app.get("/meta")
-def meta_info():
+def meta_info(request: Request):
     db = get_db()
     cursor = db.cursor()
     # Get all tables
@@ -265,4 +250,14 @@ def meta_info():
         }
     cursor.close()
     db.close()
-    return db_info
+    # Merge deployment info
+    deployment_info = {
+        "service_name": RENDER_SERVICE_NAME,
+        "service_id": RENDER_SERVICE_ID,
+        "external_url": RENDER_EXTERNAL_URL,
+        "git_branch": RENDER_GIT_BRANCH,
+        "git_commit": RENDER_GIT_COMMIT,
+        "wiki_url": WIKI_URL,
+        "cors_allow_origins": request.app.middleware[0].options.get("allow_origins"),
+    }
+    return {"deployment": deployment_info, "database": db_info}
