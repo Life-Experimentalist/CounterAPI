@@ -1,10 +1,21 @@
 import os
 from typing import Optional
 
+# Load .env.local if present for local development
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(".env.local")
+except ImportError:
+    pass
+except Exception:
+    pass
+
 import psycopg2
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from psycopg2 import sql
 from pydantic import BaseModel
 
@@ -33,6 +44,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve static files (for icon.png, etc.)
+app.mount("/static", StaticFiles(directory="."), name="static")
+
 
 # Models
 class ProjectBase(BaseModel):
@@ -50,23 +64,28 @@ class ProjectPing(BaseModel):
     name: str
 
 
-# Serve dashboard
 @app.get("/")
-def root():
+def read_root():
     return FileResponse("index.html")
 
 
 @app.get("/projects")
 def get_projects():
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT name, description, count FROM projects")
-    projects = [
-        {"name": n, "description": d, "count": c} for n, d, c in cursor.fetchall()
-    ]
-    cursor.close()
-    db.close()
-    return projects
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT name, description, count FROM projects")
+        projects = [
+            {"name": n, "description": d, "count": c} for n, d, c in cursor.fetchall()
+        ]
+        cursor.close()
+        db.close()
+        return projects
+    except Exception as e:
+        return {
+            "error": "No database connected or unable to connect.",
+            "detail": str(e),
+        }
 
 
 @app.post("/projects")
@@ -218,40 +237,45 @@ def ping_project(proj: ProjectPing):
 # Endpoint to get deployment and database info
 @app.get("/meta")
 def meta_info(request: Request):
-    db = get_db()
-    cursor = db.cursor()
-    # Get all tables
-    cursor.execute(
-        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
-    )
-    tables = [row[0] for row in cursor.fetchall()]
-    db_info = {
-        "db_host": os.getenv("DB_HOST"),
-        "db_port": os.getenv("DB_PORT"),
-        "db_name": os.getenv("DB_NAME"),
-        "db_user": os.getenv("DB_USER"),
-        "tables": {},
-    }
-    for table in tables:
-        # Get columns
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        # Get all tables
         cursor.execute(
-            "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = %s",
-            (table,),
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
         )
-        columns = cursor.fetchall()
-        # Get row count (safe SQL identifier)
-        cursor.execute(
-            sql.SQL("SELECT COUNT(*) FROM {} ").format(sql.Identifier(table))
-        )
-        row = cursor.fetchone()
-        row_count = row[0] if row else 0
-        db_info["tables"][table] = {
-            "columns": [{"name": c[0], "type": c[1]} for c in columns],
-            "row_count": row_count,
+        tables = [row[0] for row in cursor.fetchall()]
+        db_info = {
+            "db_host": os.getenv("DB_HOST"),
+            "db_port": os.getenv("DB_PORT"),
+            "db_name": os.getenv("DB_NAME"),
+            "db_user": os.getenv("DB_USER"),
+            "tables": {},
         }
-    cursor.close()
-    db.close()
-    # Merge deployment info
+        for table in tables:
+            # Get columns
+            cursor.execute(
+                "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = %s",
+                (table,),
+            )
+            columns = cursor.fetchall()
+            # Get row count (safe SQL identifier)
+            cursor.execute(
+                sql.SQL("SELECT COUNT(*) FROM {} ").format(sql.Identifier(table))
+            )
+            row = cursor.fetchone()
+            row_count = row[0] if row else 0
+            db_info["tables"][table] = {
+                "columns": [{"name": c[0], "type": c[1]} for c in columns],
+                "row_count": row_count,
+            }
+        cursor.close()
+        db.close()
+    except Exception as e:
+        db_info = {
+            "error": "No database connected or unable to connect.",
+            "detail": str(e),
+        }
     deployment_info = {
         "service_name": RENDER_SERVICE_NAME,
         "service_id": RENDER_SERVICE_ID,
@@ -262,3 +286,29 @@ def meta_info(request: Request):
         "cors_allow_origins": CORS_ALLOW_ORIGINS,
     }
     return {"deployment": deployment_info, "database": db_info}
+
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint that tests database connectivity"""
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        # Simple query to test connection
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+        cursor.close()
+        db.close()
+
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "timestamp": os.getenv("RENDER_GIT_COMMIT", "unknown"),
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "database": "disconnected",
+            "error": str(e),
+            "timestamp": os.getenv("RENDER_GIT_COMMIT", "unknown"),
+        }

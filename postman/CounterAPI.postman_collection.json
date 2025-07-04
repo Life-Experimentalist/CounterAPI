@@ -2,7 +2,7 @@
 	"info": {
 		"name": "CounterAPI",
 		"_postman_id": "d61450e2-73c3-4d29-a660-3b80a7d558c9",
-		"description": "Postman collection for testing the CounterAPI endpoints",
+		"description": "Postman collection for testing the CounterAPI endpoints including health checks and database connectivity testing",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -59,15 +59,21 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"name\": \"test-project\",\n  \"new_name\": \"updated-project\",\n  \"description\": \"Updated description\"\n}"
+					"raw": "{\n  \"new_name\": \"updated-project\",\n  \"description\": \"Updated description\",\n  \"count\": 42\n}"
 				},
 				"url": {
-					"raw": "{{base_url}}/projects",
+					"raw": "{{base_url}}/projects?name=test-project",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"projects"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "test-project"
+						}
 					]
 				}
 			}
@@ -76,23 +82,15 @@
 			"name": "Delete Project",
 			"request": {
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"name\": \"updated-project\"\n}"
-				},
+				"header": [],
 				"url": {
-					"raw": "{{base_url}}/projects",
+					"raw": "{{base_url}}/projects/test-project",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"projects"
+						"projects",
+						"test-project"
 					]
 				}
 			}
@@ -109,15 +107,48 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"name\": \"updated-project\"\n}"
+					"raw": "{\n  \"name\": \"test-project\"\n}"
 				},
 				"url": {
-					"raw": "{{base_url}}/ping",
+					"raw": "{{base_url}}/projects/ping",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
+						"projects",
 						"ping"
+					]
+				}
+			}
+		},
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			}
+		},
+		{
+			"name": "Get Meta Info",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/meta",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"meta"
 					]
 				}
 			}

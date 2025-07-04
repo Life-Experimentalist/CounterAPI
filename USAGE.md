@@ -36,11 +36,21 @@ curl -X DELETE https://<your-api-url>/projects/my-cool-app
 
 ## 🛠️ Update a Project
 
+Update name, description, and/or count:
+
 ```bash
 curl -X PUT \
   -H "Content-Type: application/json" \
-  -d '{"new_name": "my-renamed-app", "description": "Updated description"}' \
+  -d '{"new_name": "my-renamed-app", "description": "Updated description", "count": 42}' \
   "https://<your-api-url>/projects?name=my-cool-app"
+```
+
+## 🏥 Health Check
+
+Check API and database connectivity:
+
+```bash
+curl https://<your-api-url>/health
 ```
 
 ## 🧬 View Database Meta Info

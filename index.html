@@ -4,13 +4,21 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="Content-Security-Policy"
+			content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' *;">
 		<title>CounterAPI Dashboard</title>
-		<link rel="icon" type="image/png" href="logo.png" />
+		<link rel="icon" type="image/png" href="/static/icon.png" />
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet" />
+		<meta name="darkreader-lock" content="true">
 		<style>
+			/* Only prevent Dark Reader, not Bootstrap modal backdrop */
+			html, body {
+				color-scheme: light !important;
+			}
+
 			:root {
 				--primary-gradient: linear-gradient(135deg,
 						#667eea 0%,
@@ -454,7 +462,7 @@
 		<nav class="navbar navbar-expand-lg">
 			<div class="container-fluid">
 				<a class="navbar-brand d-flex align-items-center" href="#">
-					<img src="icon.png" alt="CounterAPI" width="32" height="32" class="me-2" />
+					<img src="/static/icon.png" alt="CounterAPI" width="32" height="32" class="me-2" />
 					CounterAPI
 				</a>
 				<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#configModal">
@@ -465,7 +473,7 @@
 
 		<div class="container py-5">
 			<h1 class="header-title">
-				<img src="icon.png" alt="CounterAPI" width="48" height="48" class="me-3" />
+				<img src="/static/icon.png" alt="CounterAPI" width="48" height="48" class="me-3" />
 				Project Analytics Dashboard
 			</h1>
 
@@ -607,10 +615,16 @@
 
 				// Update environment info in the modal
 				const envInfo = document.getElementById("environment-info");
+				const apiUrlGroup = document.querySelector('#configModal .mb-3');
+
 				if (envInfo) {
 					if (isOnRender) {
 						envInfo.innerHTML =
 							'<span class="badge bg-success">Render (Auto-configured)</span>';
+						// Hide API URL input on Render since it's auto-configured
+						if (apiUrlGroup) {
+							apiUrlGroup.style.display = 'none';
+						}
 					} else if (isGitHubPages) {
 						envInfo.innerHTML =
 							'<span class="badge bg-info">GitHub Pages (Manual config)</span>';
@@ -620,8 +634,15 @@
 					}
 				}
 
-				// Always ask for URL on first run, regardless of environment
-				initializeAPIFromStorage();
+				// Auto-configure API URL on Render, otherwise use storage
+				if (isOnRender) {
+					apiBase = window.location.origin;
+					localStorage.setItem("apiBase", apiBase);
+					apiInput.value = apiBase;
+					loadProjects();
+				} else {
+					initializeAPIFromStorage();
+				}
 			}
 
 			function initializeAPIFromStorage() {
@@ -823,11 +844,22 @@
 			async function addProject() {
 				const nameInput = document.getElementById("project-name-input");
 				const descInput = document.getElementById("project-desc-input");
-				const name = nameInput.value.trim();
-				const description = descInput.value.trim();
+				const name = sanitizeInput(nameInput.value.trim());
+				const description = sanitizeInput(descInput.value.trim());
 
 				if (!name) {
 					showToast("errorToast", "Please enter a project name");
+					return;
+				}
+
+				// Additional validation
+				if (name.length > 100) {
+					showToast("errorToast", "Project name must be 100 characters or less");
+					return;
+				}
+
+				if (description.length > 1000) {
+					showToast("errorToast", "Description must be 1000 characters or less");
 					return;
 				}
 
@@ -911,6 +943,19 @@
 					);
 					if (newDesc === null) return;
 
+					const newCount = prompt(
+						"Enter new count:",
+						project?.count?.toString() || "0"
+					);
+					if (newCount === null) return;
+
+					// Validate count is a number
+					const countValue = parseInt(newCount.trim());
+					if (isNaN(countValue) || countValue < 0) {
+						showToast("errorToast", "Count must be a valid non-negative number");
+						return;
+					}
+
 					const updateResponse = await fetch(
 						`${apiBase}/projects?name=${encodeURIComponent(name)}`,
 						{
@@ -919,6 +964,7 @@
 							body: JSON.stringify({
 								new_name: newName.trim() || name,
 								description: newDesc.trim(),
+								count: countValue,
 							}),
 						}
 					);
@@ -988,18 +1034,24 @@
 				}
 
 				statusDiv.innerHTML =
-					'<div class="alert alert-info">Testing connection...</div>';
+					'<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>Testing connection...</div>';
 
 				try {
-					const response = await fetch(`${url}/projects`);
-					if (response.ok) {
+					const response = await fetch(`${url}/health`);
+					const health = await response.json();
+
+					if (health.status === 'healthy') {
 						statusDiv.innerHTML =
-							'<div class="alert alert-success">✅ Connection successful!</div>';
+							'<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Connection successful! Database is connected.</div>';
+					} else if (health.status === 'unhealthy') {
+						statusDiv.innerHTML =
+							'<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>API is reachable but database is disconnected.</div>';
 					} else {
-						throw new Error(`HTTP ${response.status}`);
+						statusDiv.innerHTML =
+							'<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>Connection established (status unknown).</div>';
 					}
 				} catch (error) {
-					statusDiv.innerHTML = `<div class="alert alert-danger">❌ Connection failed: ${error.message}</div>`;
+					statusDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>Connection failed: ${error.message}</div>`;
 				}
 			}
 
@@ -1035,9 +1087,24 @@
 			}
 
 			function escapeHtml(text) {
+				if (typeof text !== 'string') return '';
 				const div = document.createElement("div");
 				div.textContent = text;
 				return div.innerHTML;
+			}
+
+			function sanitizeInput(input) {
+				if (typeof input !== 'string') return '';
+				return input.replace(/[<>'"&]/g, function(char) {
+					switch(char) {
+						case '<': return '&lt;';
+						case '>': return '&gt;';
+						case '"': return '&quot;';
+						case "'": return '&#x27;';
+						case '&': return '&amp;';
+						default: return char;
+					}
+				});
 			}
 
 			// Load meta info when settings modal is opened
@@ -1046,40 +1113,142 @@
 				configModalEl.addEventListener("show.bs.modal", async () => {
 					const metaBody = document.getElementById("meta-info-body");
 					metaBody.innerHTML = `<div class='d-flex justify-content-center align-items-center' style='height:120px;'><div class='spinner-border text-primary' role='status'><span class='visually-hidden'>Loading...</span></div></div>`;
+
 					try {
 						const response = await fetch(`${apiBase}/meta`);
-						if (!response.ok)
+						if (!response.ok) {
 							throw new Error(`HTTP ${response.status}`);
+						}
+
 						const data = await response.json();
 						metaBody.innerHTML = renderMetaInfo(data);
-					} catch (e) {
-						metaBody.innerHTML = `<div class='alert alert-danger'>Failed to load info: ${e.message}</div>`;
+					} catch (error) {
+						console.error('Failed to load meta info:', error);
+						metaBody.innerHTML = `<div class='alert alert-danger'>Failed to load info: ${error.message}</div>`;
 					}
 				});
 			});
 			function renderMetaInfo(data) {
-				let html = `<h6 class='mb-3'>Deployment</h6><ul class='list-group mb-4'>`;
-				for (const [k, v] of Object.entries(data.deployment)) {
-					html += `<li class='list-group-item d-flex justify-content-between align-items-center'><span>${k.replace(
-						/_/g,
-						" "
-					)}:</span><span class='fw-bold'>${v}</span></li>`;
+				try {
+					// Check if data exists and has the expected structure
+					if (!data || typeof data !== 'object') {
+						return '<div class="alert alert-warning">No deployment info available</div>';
+					}
+
+					let html = '';
+
+					// Render deployment info if available
+					if (data.deployment && typeof data.deployment === 'object') {
+						html += `<h6 class='mb-3'><i class='fas fa-rocket me-2'></i>Deployment Info</h6>`;
+						html += `<div class='table-responsive mb-4'>`;
+						html += `<table class='table table-hover table-bordered'>`;
+						html += `<thead class='table-primary'><tr><th>Property</th><th>Value</th></tr></thead><tbody>`;
+
+						for (const [k, v] of Object.entries(data.deployment)) {
+							const displayKey = k.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+							const displayValue = sanitizeInput(v || 'N/A');
+							html += `<tr><td class='fw-semibold'>${sanitizeInput(displayKey)}</td><td><code>${displayValue}</code></td></tr>`;
+						}
+
+						html += `</tbody></table></div>`;
+					}
+
+					// Render database info if available
+					if (data.database && typeof data.database === 'object') {
+						html += `<h6 class='mb-3'><i class='fas fa-database me-2'></i>Database Information</h6>`;
+
+						// Database connection details
+						html += `<div class='table-responsive mb-3'>`;
+						html += `<table class='table table-hover table-bordered'>`;
+						html += `<thead class='table-success'><tr><th>Connection Property</th><th>Value</th></tr></thead><tbody>`;
+						html += `<tr><td class='fw-semibold'>Host</td><td><code>${sanitizeInput(data.database.db_host || 'N/A')}</code></td></tr>`;
+						html += `<tr><td class='fw-semibold'>Database Name</td><td><code>${sanitizeInput(data.database.db_name || 'N/A')}</code></td></tr>`;
+						html += `<tr><td class='fw-semibold'>User</td><td><code>${sanitizeInput(data.database.db_user || 'N/A')}</code></td></tr>`;
+						html += `<tr><td class='fw-semibold'>Port</td><td><code>${sanitizeInput(data.database.db_port || 'N/A')}</code></td></tr>`;
+						html += `<tr><td class='fw-semibold'>Connection Test</td><td><button class='btn btn-sm btn-outline-primary' onclick='testDatabaseConnection(event)'>Test Connection</button></td></tr>`;
+						html += `</tbody></table></div>`;
+
+						// Database tables section
+						if (data.database.tables && typeof data.database.tables === 'object') {
+							html += `<h6 class='mb-3'><i class='fas fa-table me-2'></i>Database Tables</h6>`;
+
+							for (const [table, info] of Object.entries(data.database.tables)) {
+								if (info && typeof info === 'object') {
+									html += `<div class='card mb-3 border-0 shadow-sm'>`;
+									html += `<div class='card-header bg-primary text-white d-flex justify-content-between align-items-center'>`;
+									html += `<span><i class='fas fa-table me-2'></i><strong>${sanitizeInput(table)}</strong></span>`;
+									html += `<span class='badge bg-light text-dark'><i class='fas fa-list-ol me-1'></i>${parseInt(info.row_count) || 0} rows</span>`;
+									html += `</div>`;
+
+									html += `<div class='card-body p-0'>`;
+									html += `<table class='table table-sm mb-0'>`;
+									html += `<thead class='table-light'><tr><th class='px-3 py-2'><i class='fas fa-columns me-1'></i>Column</th><th class='px-3 py-2'><i class='fas fa-code me-1'></i>Data Type</th></tr></thead>`;
+									html += `<tbody>`;
+
+									if (info.columns && Array.isArray(info.columns)) {
+										for (const col of info.columns) {
+											if (col && typeof col === 'object') {
+												html += `<tr>`;
+												html += `<td class='px-3 py-2'><code class='text-primary'>${sanitizeInput(col.name || 'Unknown')}</code></td>`;
+												html += `<td class='px-3 py-2'><span class='badge bg-secondary'>${sanitizeInput(col.type || 'Unknown')}</span></td>`;
+												html += `</tr>`;
+											}
+										}
+									}
+
+									html += `</tbody></table></div></div>`;
+								}
+							}
+						}
+					}
+
+					return html || '<div class="alert alert-info">No detailed info available</div>';
+				} catch (error) {
+					console.error('Error rendering meta info:', error);
+					return '<div class="alert alert-danger">Error loading info</div>';
 				}
-				html += `</ul><h6 class='mb-3'>Database</h6><ul class='list-group mb-2'>`;
-				for (const [table, info] of Object.entries(
-					data.database.tables
-				)) {
-					html += `<li class='list-group-item'><strong>${table}</strong> (${info.row_count
-						} rows)<br><small>Columns: ${info.columns
-							.map(
-								(c) =>
-									`${c.name} <span class='text-muted'>[${c.type}]</span>`
-							)
-							.join(", ")}</small></li>`;
+			}
+
+			async function testDatabaseConnection(event) {
+				const button = event.target;
+				const originalText = button.innerHTML;
+
+				button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Testing...';
+				button.disabled = true;
+
+				try {
+					const response = await fetch(`${apiBase}/health`);
+					const health = await response.json();
+
+					if (health.status === 'healthy' && health.database === 'connected') {
+						button.innerHTML = '<i class="fas fa-check me-1"></i>Connected';
+						button.className = 'btn btn-sm btn-success';
+
+						setTimeout(() => {
+							button.innerHTML = originalText;
+							button.className = 'btn btn-sm btn-outline-primary';
+							button.disabled = false;
+						}, 3000);
+					} else {
+						button.innerHTML = '<i class="fas fa-times me-1"></i>Failed';
+						button.className = 'btn btn-sm btn-danger';
+
+						setTimeout(() => {
+							button.innerHTML = originalText;
+							button.className = 'btn btn-sm btn-outline-primary';
+							button.disabled = false;
+						}, 3000);
+					}
+				} catch (error) {
+					button.innerHTML = '<i class="fas fa-times me-1"></i>Error';
+					button.className = 'btn btn-sm btn-danger';
+
+					setTimeout(() => {
+						button.innerHTML = originalText;
+						button.className = 'btn btn-sm btn-outline-primary';
+						button.disabled = false;
+					}, 3000);
 				}
-				html += `</ul>`;
-				html += `<div class='mt-3'><span class='text-muted'>DB Host:</span> <code>${data.database.db_host}</code> | <span class='text-muted'>DB Name:</span> <code>${data.database.db_name}</code> | <span class='text-muted'>User:</span> <code>${data.database.db_user}</code></div>`;
-				return html;
 			}
 		</script>
 

@@ -14,12 +14,19 @@ Powered by **FastAPI** and **PostgreSQL**, it's ideal for hobby projects, dev da
 ## 🌟 Features
 
 * 🔁 Track project usage with simple HTTP pings
-* 🧓 View all counters in a clean JSON format
-* 🛠️ Full CRUD: Add, edit, rename, or delete projects
+* 📊 Beautiful interactive dashboard with real-time updates
+* 🛠️ Full CRUD: Add, edit, rename, or delete projects with descriptions and counts
 * 📂 Persistent storage using **PostgreSQL** (free via Filess.io)
 * 🚀 One-click deploy to Render (completely free)
 * 🧪 Comes with Postman Collection for quick testing
-* 🛡️ Automatically configures GitHub Wiki fallback for docs
+* 🌐 Auto-configures API URLs when deployed on Render
+* 📈 Live stats showing total projects, visits, and averages
+* ⚡ Seamless UI updates with debounced reloading
+* 🎨 Modern glassmorphism design with smooth animations
+* 📱 Fully responsive mobile-friendly interface
+* 🔧 Built-in settings modal with connection testing and health checks
+* 🗄️ Database schema viewer showing tables, columns, and connection status
+* 🛡️ Dark Reader extension disabled for consistent UI experience
 
 ---
 
@@ -33,11 +40,24 @@ Powered by **FastAPI** and **PostgreSQL**, it's ideal for hobby projects, dev da
 
 ```mermaid
 flowchart TD
-  A[UI: index.html - GitHub Pages/Local] -->|API Request| B[FastAPI Backend main.py]
-  B -->|DB Query| C[(PostgreSQL DB)]
-  B -->|Static File| A
-  B -->|Meta Info| D[Deployment/DB Info]
-  A -.->|Config/API URL| B
+  A[UI: index.html - Interactive Dashboard] -->|API Requests| B[FastAPI Backend main.py]
+  B -->|CRUD Operations| C[(PostgreSQL Database)]
+  B -->|Static Files| A
+  B -->|Meta Info| D[Deployment & DB Status]
+  A -.->|Auto-Config on Render| B
+  A -.->|Manual Config Elsewhere| B
+
+  subgraph "Features"
+    E[Real-time Stats]
+    F[Project Management]
+    G[Connection Testing]
+    H[Database Schema Viewer]
+  end
+
+  A --> E
+  A --> F
+  A --> G
+  A --> H
 ```
 
 ---
@@ -100,12 +120,14 @@ CREATE TABLE myschema.projects (
 
 ## 📡 API Reference
 
-- `GET /projects` — List all projects
-- `POST /projects` — Add a new project
-- `PUT /projects` — Update a project
-- `DELETE /projects/{name}` — Delete a project
-- `POST /projects/ping` — Increment a project's count
-- `GET /meta` — View detailed database info (tables, columns, row counts, connection info)
+- `GET /projects` — List all projects with their counts and descriptions
+- `POST /projects` — Add a new project (name and optional description)
+- `PUT /projects?name={name}` — Update a project's name and/or description
+- `DELETE /projects/{name}` — Delete a project by name
+- `POST /projects/ping` — Increment a project's count by 1
+- `GET /health` — Check API and database connectivity status
+- `GET /meta` — View detailed deployment and database info (tables, columns, row counts)
+- `GET /` — Serve the interactive dashboard (index.html)
 
 ---
 
